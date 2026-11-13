@@ -137,6 +137,10 @@ a{color:#C24100}a:hover{color:#8F3000}
 .bx{flex:1;border:0;background:transparent;padding:12px 6px 14px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-family:'Hanken Grotesk',sans-serif;border-radius:14px;transition:background .15s}
 .bx:hover{background:#FFFFFF}
 .bx:focus-visible{outline:2px solid #FF5700;outline-offset:-2px}
+.pills{display:flex;gap:6px;margin:2px 12px 0;overflow-x:auto}
+.pill{flex:0 0 auto;height:30px;padding:0 12px;border-radius:999px;border:1px solid #DDE5E7;background:#FFFFFF;color:#4A6168;font:600 12px 'Hanken Grotesk',sans-serif;cursor:pointer}
+.pill.on{background:#003239;border-color:#003239;color:#FFFFFF}
+.sample{margin:4px 12px 0;padding:8px 10px;border-radius:10px;background:#FFF4EC;color:#8F3000;font:600 12px 'Hanken Grotesk',sans-serif}
 .stat{background:#F5F8F8;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px}
 </style>
 </helmet>
@@ -166,6 +170,14 @@ a{color:#C24100}a:hover{color:#8F3000}
         <button role="tab" aria-selected="{{downSel}}" class="tab {{downCls}}" onClick="{{showDown}}">Losers</button>
         <button role="tab" aria-selected="{{tradedSel}}" class="tab {{tradedCls}}" onClick="{{showTraded}}">Turnover</button>
       </div>
+      <div class="pills" role="group" aria-label="Period">
+        <sc-for list="{{periods}}" as="pd" hint-placeholder-count="5">
+          <button class="pill {{pd.cls}}" aria-pressed="{{pd.sel}}" onClick="{{pd.pick}}">{{pd.label}}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{isSample}}" hint-placeholder-val="{{ false }}">
+        <div class="sample">{{sampleTxt}}</div>
+      </sc-if>
       <div style="display: flex; flex-direction: column">
         <sc-for list="{{items}}" as="item" hint-placeholder-count="5">
           <button class="row" onClick="{{item.open}}" aria-label="{{item.aria}}">
@@ -435,7 +447,7 @@ a{color:#C24100}a:hover{color:#8F3000}
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { screen: 'main', stock: null, tab: 'up', metric: 'turn', bar: 4, shown: 0, grown: false, hm: '30', sheet: null, who: 'all' };
+    this.state = { screen: 'main', stock: null, tab: 'up', metric: 'turn', bar: 4, shown: 0, grown: false, hm: '30', sheet: null, who: 'all', period: 'D' };
   }
   componentDidMount() {
     this._t = setTimeout(() => { this.setState({ grown: true }); this.animateTo(this.days()[4].turn); }, 120);
@@ -556,11 +568,25 @@ class Component extends DCLogic {
 
     const lists = { up: ['INFI', 'ATLC', 'DTPP', 'ROTO', 'HDBK'], down: ['PRCL', 'CPME', 'CCRS', 'BIOC'], traded: ['ETEL', 'CRST', 'BIOC', 'KORA', 'GTWL'] };
     const tab = this.state.tab;
-    const items = lists[tab].map((k) => {
-      const s = S[k];
-      const initials = s.name.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
-      return { initials, name: s.name, line: s.line || s.ticker, priceTxt: 'EGP ' + s.price.toFixed(2), chgTxt: P(s.chg), dir: dirOf(s.chg), aria: s.name + ', ' + P(s.chg), open: openStock(k) };
-    });
+    const period = this.state.period;
+    const PERIODS = [['D', 'Daily'], ['W', 'Week'], ['M', 'Month'], ['6M', '6 months'], ['Y', 'Year']];
+    const periodName = { D: 'today', W: 'this week', M: 'this month', '6M': 'the last 6 months', Y: 'the last year' }[period];
+    const ini = (n) => n.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+    let items;
+    if (period === 'D') {
+      items = lists[tab].map((k) => {
+        const s = S[k];
+        return { initials: ini(s.name), name: s.name, line: s.line || s.ticker, priceTxt: 'EGP ' + s.price.toFixed(2), chgTxt: P(s.chg), dir: dirOf(s.chg), aria: s.name + ', ' + P(s.chg), open: openStock(k) };
+      });
+    } else {
+      // PLACEHOLDER figures for layout only: deterministic sample values, not market data.
+      const span = { W: 6, M: 12, '6M': 35, Y: 70 }[period];
+      const seed = (k) => { let h = 7; for (const c of k + period) h = (h * 31 + c.charCodeAt(0)) % 100003; return h / 100003; };
+      const pool = Object.keys(T).map((k) => { const s = S[k]; const r = seed(k); return { k, s, chg: (r - 0.42) * span, val: (s.mcap || 10) * (0.0008 + ((r * 7919) % 1) * 0.0016) * { W: 5, M: 21, '6M': 125, Y: 250 }[period] }; });
+      const pick = tab === 'up' ? pool.slice().sort((a, b) => b.chg - a.chg) : tab === 'down' ? pool.slice().sort((a, b) => a.chg - b.chg) : pool.slice().sort((a, b) => b.val - a.val);
+      items = pick.slice(0, 5).map(({ k, s, chg, val }) => ({ initials: ini(s.name), name: s.name, line: tab === 'traded' ? 'Sample: EGP ' + val.toFixed(1) + 'bn traded ' + periodName : 'Sample figure · ' + s.ticker, priceTxt: 'EGP ' + s.price.toFixed(2), chgTxt: P(chg), dir: dirOf(chg), aria: s.name + ', sample ' + P(chg), open: openStock(k) }));
+    }
+    const periods = PERIODS.map(([id, label]) => ({ label, cls: period === id ? 'on' : '', sel: period === id ? 'true' : 'false', pick: () => this.setState({ period: id }) }));
     const go = (k) => () => this.setState({ tab: k });
 
     const m = this.state.metric;
@@ -711,7 +737,7 @@ class Component extends DCLogic {
       hm30Sel: hm === '30' ? 'true' : 'false', hm70Sel: hm === '70' ? 'true' : 'false', hmSecSel: hm === 'sec' ? 'true' : 'false',
       show30: hmGo('30'), show70: hmGo('70'), showSec: hmGo('sec'),
       hasSheet: !!this.state.sheet, sh, closeSheet: () => this.setState({ sheet: null }),
-      st, flows, whoTitle, whoNote,
+      st, flows, whoTitle, whoNote, periods, isSample: period !== 'D', sampleTxt: 'Sample figures for ' + periodName + ', to show the layout only. Not real market data.',
       whoInd: () => this.setState({ who: 'ind' }), whoInst: () => this.setState({ who: 'inst' }),
       whoAll: () => this.setState({ who: 'all' }), whoIndTab: () => this.setState({ who: 'ind' }), whoInstTab: () => this.setState({ who: 'inst' }),
       whoAllCls: who === 'all' ? 'on' : '', whoIndCls: who === 'ind' ? 'on' : '', whoInstCls: who === 'inst' ? 'on' : '', whoAllSel: who === 'all' ? 'true' : 'false',
