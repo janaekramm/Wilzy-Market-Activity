@@ -224,7 +224,6 @@ a{color:#C24100}a:hover{color:#8F3000}
           <h2 class="h2">Unusual activity</h2>
           <span class="tip" tabindex="0" role="button" aria-label="What this shows"><span class="tip-i" aria-hidden="true">i</span><span class="tip-box" role="tooltip">Stocks that traded far more shares than usual today. The multiple compares today's shares traded with the stock's average over the last 10 sessions. Heavy volume often comes before or with news, so it is a signal to look closer, not a buy or sell call.</span></span>
         </div>
-        <span class="mute" style="font-size: 12px">Swipe ›</span>
       </div>
       <div class="va-row">
         <sc-for list="{{alerts}}" as="va" hint-placeholder-count="3">
@@ -642,7 +641,7 @@ class Component extends DCLogic {
       items = pick.slice(0, 5).map(({ k, s, chg, val }) => ({ initials: ini(s.name), name: s.name, line: tab === 'traded' ? 'EGP ' + val.toFixed(1) + 'bn traded ' + periodName : s.ticker, priceTxt: 'EGP ' + s.price.toFixed(2), chgTxt: egpChg(s.price, chg), dir: dirOf(chg), aria: s.name + ', ' + egpChg(s.price, chg), open: openStock(k) }));
     }
     // Volume alerts, 12 Nov: shares traded vs 10-day average (Beltone Egypt In Sight)
-    const VA = [['EAST', 10.18, 1.79, 5.68, 'Moved down to the MSCI Egypt Small Cap index; fell about 5.7% early before recovering.'], ['OLFI', 1.97, 0.5121, 3.85, 'No company news was published.'], ['ETEL', 4.81, 1.53, 3.14, 'Promoted to the MSCI Egypt standard index and reported nine-month results.']];
+    const VA = [['EAST', 10.18, 1.79, 5.68, 'Moved down to the MSCI Egypt Small Cap index; fell about 5.7% early before recovering.'], ['OLFI', 1.97, 0.5121, 3.85, 'Reported nine-month profit up 16.6% to EGP 771mn, on revenue of about EGP 10bn.'], ['ETEL', 4.81, 1.53, 3.14, 'Promoted to the MSCI Egypt standard index and reported nine-month results.']];
     const fmtSh = (m) => (m >= 1 ? m.toFixed(2) + 'M' : Math.round(m * 1000) + 'K');
     const alerts = VA.map(([k, today, avg, mult, why]) => { const s = S[k]; const c = s ? s.chg : 0; return { initials: ini(s.name), name: s.name, ticker: k, chgTxt: (c > 0 ? '+' : c < 0 ? '−' : '') + Math.abs(c).toFixed(2) + '%', chgColor: c > 0 ? '#1B6B34' : c < 0 ? '#B42318' : '#5B7076', mult: mult.toFixed(1) + '×', avg: fmtSh(avg), today: fmtSh(today), avgW: Math.max(4, Math.round((avg / today) * 100)) + '%', why, aria: s.name + ', ' + mult.toFixed(1) + ' times its usual volume', open: openStock(k) }; });
     const periods = PERIODS.map(([id, label]) => ({ label, cls: period === id ? 'on' : '', sel: period === id ? 'true' : 'false', pick: () => this.setState({ period: id }) }));
