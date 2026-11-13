@@ -274,17 +274,23 @@ a{color:#C24100}a:hover{color:#8F3000}
 
     <section aria-label="Who was buying and selling" class="card">
       <h2 class="h2">Who bought, who sold</h2>
+      <span class="mute" style="margin-top: -8px">Each group's buying minus its selling today, in EGP. Positive means the group bought more than it sold.</span>
       <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
         <button class="stat" onClick="{{whoInd}}" aria-pressed="{{indPressed}}" aria-label="Show individuals by nationality" style="background: #E6F4EA; border: 2px solid {{indBorder}}; text-align: left; cursor: pointer; font-family: inherit">
-          <span style="font-size: 13px; font-weight: 700; color: #0E2A30">Individuals ›</span>
+          <span style="font-size: 13px; font-weight: 700; color: #0E2A30">Individuals</span>
           <span class="num" style="font-size: 20px; font-weight: 800; color: #1B6B34">+EGP 230.1mn</span>
           <span style="font-size: 12px; font-weight: 600; color: #1B6B34">Net buyers</span>
         </button>
         <button class="stat" onClick="{{whoInst}}" aria-pressed="{{instPressed}}" aria-label="Show institutions by nationality" style="background: #FDECEA; border: 2px solid {{instBorder}}; text-align: left; cursor: pointer; font-family: inherit">
-          <span style="font-size: 13px; font-weight: 700; color: #0E2A30">Institutions ›</span>
+          <span style="font-size: 13px; font-weight: 700; color: #0E2A30">Institutions</span>
           <span class="num" style="font-size: 20px; font-weight: 800; color: #B42318">−EGP 230.1mn</span>
           <span style="font-size: 12px; font-weight: 600; color: #B42318">Net sellers</span>
         </button>
+      </div>
+      <div class="seg" role="tablist" aria-label="Show flows for">
+        <button role="tab" aria-selected="{{whoAllSel}}" class="tab {{whoAllCls}}" onClick="{{whoAll}}">All investors</button>
+        <button role="tab" aria-selected="{{indPressed}}" class="tab {{whoIndCls}}" onClick="{{whoIndTab}}">Individuals</button>
+        <button role="tab" aria-selected="{{instPressed}}" class="tab {{whoInstCls}}" onClick="{{whoInstTab}}">Institutions</button>
       </div>
       <span style="font-size: 13px; font-weight: 700; color: #003239">{{whoTitle}}</span>
       <div style="display: flex; flex-direction: column; gap: 12px">
@@ -685,8 +691,8 @@ class Component extends DCLogic {
     const fmax = Math.max(...fl.map((r) => Math.abs(r[1]))) * 1.05;
     const n1 = (x) => x.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const flows = fl.map(([label, v, b, sl]) => ({ label, value: (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + 'mn', color: v >= 0 ? '#1B6B34' : '#B42318', posW: v > 0 ? Math.round((v / fmax) * 100) + '%' : '0%', negW: v < 0 ? Math.round((-v / fmax) * 100) + '%' : '0%', bs: 'Bought ' + n1(b) + ' · Sold ' + n1(sl) }));
-    const whoTitle = who === 'ind' ? 'Individuals by nationality' : who === 'inst' ? 'Institutions by nationality' : 'All investors by nationality';
-    const whoNote = who === 'all' ? 'EGP mn, net for the day. Tap Individuals or Institutions to split them by nationality.' : 'EGP mn, net for the day. Tap the card again to see all investors.';
+    const whoTitle = who === 'ind' ? 'Individuals, split by nationality' : who === 'inst' ? 'Institutions, split by nationality' : 'All investors, split by nationality';
+    const whoNote = 'Green bar: bought more than sold. Red bar: sold more than bought. Figures in EGP mn for stocks only.';
 
     return {
       onMain: this.state.screen === 'main', onStock: this.state.screen === 'stock', backMain: () => this.setState({ screen: 'main' }),
@@ -706,7 +712,9 @@ class Component extends DCLogic {
       show30: hmGo('30'), show70: hmGo('70'), showSec: hmGo('sec'),
       hasSheet: !!this.state.sheet, sh, closeSheet: () => this.setState({ sheet: null }),
       st, flows, whoTitle, whoNote,
-      whoInd: () => this.setState({ who: who === 'ind' ? 'all' : 'ind' }), whoInst: () => this.setState({ who: who === 'inst' ? 'all' : 'inst' }),
+      whoInd: () => this.setState({ who: 'ind' }), whoInst: () => this.setState({ who: 'inst' }),
+      whoAll: () => this.setState({ who: 'all' }), whoIndTab: () => this.setState({ who: 'ind' }), whoInstTab: () => this.setState({ who: 'inst' }),
+      whoAllCls: who === 'all' ? 'on' : '', whoIndCls: who === 'ind' ? 'on' : '', whoInstCls: who === 'inst' ? 'on' : '', whoAllSel: who === 'all' ? 'true' : 'false',
       indBorder: who === 'ind' ? '#1B6B34' : 'transparent', instBorder: who === 'inst' ? '#B42318' : 'transparent',
       indPressed: who === 'ind' ? 'true' : 'false', instPressed: who === 'inst' ? 'true' : 'false',
     };
