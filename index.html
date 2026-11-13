@@ -308,12 +308,14 @@ a{color:#C24100}a:hover{color:#8F3000}
           <span style="font-size: 12px; font-weight: 600; color: #B42318">Net sellers</span>
         </button>
       </div>
-      <div class="seg" role="tablist" aria-label="Show flows for">
-        <button role="tab" aria-selected="{{whoAllSel}}" class="tab {{whoAllCls}}" onClick="{{whoAll}}">All investors</button>
-        <button role="tab" aria-selected="{{indPressed}}" class="tab {{whoIndCls}}" onClick="{{whoIndTab}}">Individuals</button>
-        <button role="tab" aria-selected="{{instPressed}}" class="tab {{whoInstCls}}" onClick="{{whoInstTab}}">Institutions</button>
+      <div class="pills" role="tablist" aria-label="Show flows for" style="margin: 2px 0 0">
+        <span class="lbl">{{whoTitle}}</span>
+        <span class="grp">
+          <button role="tab" aria-selected="{{whoAllSel}}" class="pill {{whoAllCls}}" onClick="{{whoAll}}">All</button>
+          <button role="tab" aria-selected="{{indPressed}}" class="pill {{whoIndCls}}" onClick="{{whoIndTab}}">Individuals</button>
+          <button role="tab" aria-selected="{{instPressed}}" class="pill {{whoInstCls}}" onClick="{{whoInstTab}}">Institutions</button>
+        </span>
       </div>
-      <span style="font-size: 13px; font-weight: 700; color: #003239">{{whoTitle}}</span>
       <div style="display: flex; flex-direction: column; gap: 12px">
         <sc-for list="{{flows}}" as="f" hint-placeholder-count="3">
           <div style="display: grid; grid-template-columns: 84px minmax(0, 1fr) 76px; align-items: center; column-gap: 10px; row-gap: 2px">
@@ -579,12 +581,13 @@ class Component extends DCLogic {
     const period = this.state.period;
     const PERIODS = [['D', '1D'], ['W', '1W'], ['M', '1M'], ['6M', '6M'], ['Y', '1Y']];
     const periodName = { D: 'today', W: 'this week', M: 'this month', '6M': 'the last 6 months', Y: 'the last year' }[period];
+    const egpChg = (price, pct) => { const d = price - price / (1 + pct / 100); return (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d).toFixed(2) + ' (' + Math.abs(pct).toFixed(2) + '%)'; };
     const ini = (n) => n.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
     let items;
     if (period === 'D') {
       items = lists[tab].map((k) => {
         const s = S[k];
-        return { initials: ini(s.name), name: s.name, line: s.line || s.ticker, priceTxt: 'EGP ' + s.price.toFixed(2), chgTxt: P(s.chg), dir: dirOf(s.chg), aria: s.name + ', ' + P(s.chg), open: openStock(k) };
+        return { initials: ini(s.name), name: s.name, line: s.line || s.ticker, priceTxt: 'EGP ' + s.price.toFixed(2), chgTxt: egpChg(s.price, s.chg), dir: dirOf(s.chg), aria: s.name + ', ' + egpChg(s.price, s.chg), open: openStock(k) };
       });
     } else {
       // PLACEHOLDER figures for layout only: deterministic sample values, not market data.
@@ -592,7 +595,7 @@ class Component extends DCLogic {
       const seed = (k) => { let h = 7; for (const c of k + period) h = (h * 31 + c.charCodeAt(0)) % 100003; return h / 100003; };
       const pool = Object.keys(T).map((k) => { const s = S[k]; const r = seed(k); return { k, s, chg: (r - 0.42) * span, val: (s.mcap || 10) * (0.0008 + ((r * 7919) % 1) * 0.0016) * { W: 5, M: 21, '6M': 125, Y: 250 }[period] }; });
       const pick = tab === 'up' ? pool.slice().sort((a, b) => b.chg - a.chg) : tab === 'down' ? pool.slice().sort((a, b) => a.chg - b.chg) : pool.slice().sort((a, b) => b.val - a.val);
-      items = pick.slice(0, 5).map(({ k, s, chg, val }) => ({ initials: ini(s.name), name: s.name, line: tab === 'traded' ? 'EGP ' + val.toFixed(1) + 'bn traded ' + periodName : s.ticker, priceTxt: 'EGP ' + s.price.toFixed(2), chgTxt: P(chg), dir: dirOf(chg), aria: s.name + ', ' + P(chg), open: openStock(k) }));
+      items = pick.slice(0, 5).map(({ k, s, chg, val }) => ({ initials: ini(s.name), name: s.name, line: tab === 'traded' ? 'EGP ' + val.toFixed(1) + 'bn traded ' + periodName : s.ticker, priceTxt: 'EGP ' + s.price.toFixed(2), chgTxt: egpChg(s.price, chg), dir: dirOf(chg), aria: s.name + ', ' + egpChg(s.price, chg), open: openStock(k) }));
     }
     const periods = PERIODS.map(([id, label]) => ({ label, cls: period === id ? 'on' : '', sel: period === id ? 'true' : 'false', pick: () => this.setState({ period: id }) }));
     const go = (k) => () => this.setState({ tab: k });
@@ -725,7 +728,7 @@ class Component extends DCLogic {
     const fmax = Math.max(...fl.map((r) => Math.abs(r[1]))) * 1.05;
     const n1 = (x) => x.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const flows = fl.map(([label, v, b, sl]) => ({ label, value: (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + 'mn', color: v >= 0 ? '#1B6B34' : '#B42318', posW: v > 0 ? Math.round((v / fmax) * 100) + '%' : '0%', negW: v < 0 ? Math.round((-v / fmax) * 100) + '%' : '0%', bs: 'Bought ' + n1(b) + ' · Sold ' + n1(sl) }));
-    const whoTitle = who === 'ind' ? 'Individuals, split by nationality' : who === 'inst' ? 'Institutions, split by nationality' : 'All investors, split by nationality';
+    const whoTitle = 'By nationality';
     const whoNote = 'Green bar: bought more than sold. Red bar: sold more than bought. Figures in EGP mn for stocks only.';
 
     return {
