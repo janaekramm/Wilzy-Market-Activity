@@ -4,7 +4,92 @@
 <meta charset="utf-8">
 <title>Market Activity</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./dc-runtime.js"></script>
+<script>
+/* Minimal standalone runtime for Wilzy design prototypes (replaces the design-canvas support.js). */
+(function () {
+  let comp = null, root = null, tpl = null, queued = false;
+  class DCLogic {
+    constructor(props) { this.props = props || {}; this.state = {}; }
+    setState(u) { Object.assign(this.state, typeof u === 'function' ? u(this.state, this.props) : u); schedule(); }
+  }
+  window.DCLogic = DCLogic;
+  const RX = /\{\{\s*([^}]*?)\s*\}\}/g;
+  const get = (scope, expr) => {
+    if (expr === 'true') return true; if (expr === 'false') return false;
+    return expr.split('.').reduce((o, k) => (o == null ? undefined : o[k]), scope);
+  };
+  const evalStr = (s, scope) => {
+    const m = s.match(/^\s*\{\{\s*([^}]*?)\s*\}\}\s*$/);
+    if (m) return get(scope, m[1]);
+    return s.replace(RX, (_, e) => { const v = get(scope, e); return v == null ? '' : String(v); });
+  };
+  function build(node, scope, out) {
+    if (node.nodeType === 3) { out.push(document.createTextNode(node.nodeValue.indexOf('{{') < 0 ? node.nodeValue : String(evalStr(node.nodeValue, scope) ?? ''))); return; }
+    if (node.nodeType !== 1) return;
+    const tag = node.localName;
+    if (tag === 'sc-if') { if (evalStr(node.getAttribute('value') || '', scope)) node.childNodes.forEach((c) => build(c, scope, out)); return; }
+    if (tag === 'sc-for') {
+      const list = evalStr(node.getAttribute('list') || '', scope) || []; const as = node.getAttribute('as') || 'item';
+      list.forEach((item, i) => { const s = Object.assign(Object.create(scope), { [as]: item, index: i }); node.childNodes.forEach((c) => build(c, s, out)); });
+      return;
+    }
+    const el = node.namespaceURI && node.namespaceURI !== 'http://www.w3.org/1999/xhtml' ? document.createElementNS(node.namespaceURI, node.tagName) : document.createElement(node.tagName);
+    el.__h = {};
+    for (const a of node.attributes) {
+      if (a.name.startsWith('hint-')) continue;
+      if (/^on[a-z]/i.test(a.name)) { const f = evalStr(a.value, scope); if (typeof f === 'function') el.__h[a.name.slice(2).toLowerCase()] = f; continue; }
+      if (a.value.indexOf('{{') < 0) { el.setAttribute(a.name, a.value); continue; }
+      const v = evalStr(a.value, scope);
+      if (v === false || v == null) continue;
+      el.setAttribute(a.name, v === true ? '' : String(v));
+    }
+    const kids = []; node.childNodes.forEach((c) => build(c, scope, kids)); kids.forEach((k) => el.appendChild(k));
+    out.push(el);
+  }
+  function syncHandlers(oldEl, newEl) {
+    const prev = oldEl.__h || {}, next = newEl.__h || {};
+    for (const k in prev) if (!(k in next)) oldEl['on' + k] = null;
+    for (const k in next) oldEl['on' + k] = next[k];
+    oldEl.__h = next;
+  }
+  function patch(parent, oldN, newN) {
+    if (!oldN) { parent.appendChild(newN); if (newN.nodeType === 1) bindDeep(newN); return; }
+    if (oldN.nodeType !== newN.nodeType || oldN.nodeName !== newN.nodeName) { parent.replaceChild(newN, oldN); if (newN.nodeType === 1) bindDeep(newN); return; }
+    if (oldN.nodeType === 3) { if (oldN.nodeValue !== newN.nodeValue) oldN.nodeValue = newN.nodeValue; return; }
+    for (const a of Array.from(oldN.attributes)) if (!newN.hasAttribute(a.name)) oldN.removeAttribute(a.name);
+    for (const a of newN.attributes) if (oldN.getAttribute(a.name) !== a.value) oldN.setAttribute(a.name, a.value);
+    syncHandlers(oldN, newN);
+    const o = Array.from(oldN.childNodes), n = Array.from(newN.childNodes);
+    n.forEach((c, i) => patch(oldN, o[i], c));
+    for (let i = n.length; i < o.length; i++) oldN.removeChild(o[i]);
+  }
+  function bindDeep(el) { const h = el.__h || {}; for (const k in h) el['on' + k] = h[k]; el.childNodes.forEach((c) => c.nodeType === 1 && bindDeep(c)); }
+  function render() {
+    queued = false;
+    const vals = comp.renderVals ? comp.renderVals() : {};
+    const out = []; tpl.childNodes.forEach((c) => build(c, vals, out));
+    const o = Array.from(root.childNodes);
+    out.forEach((c, i) => patch(root, o[i], c));
+    for (let i = out.length; i < o.length; i++) root.removeChild(o[i]);
+  }
+  function schedule() { if (!queued && comp) { queued = true; requestAnimationFrame(render); } }
+  document.addEventListener('DOMContentLoaded', () => {
+    const t = document.getElementById('dc-tpl'); const host = t ? t.content.querySelector('x-dc') : document.querySelector('x-dc');
+    const helmet = host.querySelector('helmet');
+    if (helmet) { Array.from(helmet.childNodes).forEach((n) => document.head.appendChild(n)); helmet.remove(); }
+    tpl = document.createElement('div'); Array.from(host.childNodes).forEach((n) => tpl.appendChild(n));
+    root = document.createElement('div'); root.id = 'app'; if (t) t.replaceWith(root); else host.replaceWith(root);
+    const sc = document.querySelector('script[type="text/x-dc"]');
+    let props = {}; try { props = JSON.parse(sc.getAttribute('data-props') || '{}'); } catch (e) {}
+    const Component = new Function('DCLogic', sc.textContent + '\nreturn Component;')(DCLogic);
+    comp = new Component(props);
+    render();
+    if (comp.componentDidMount) comp.componentDidMount();
+    window.addEventListener('pagehide', () => comp.componentWillUnmount && comp.componentWillUnmount());
+  });
+})();
+
+</script>
 </head>
 <body>
 <template id="dc-tpl"><x-dc>
@@ -190,30 +275,32 @@ a{color:#C24100}a:hover{color:#8F3000}
     <section aria-label="Who was buying and selling" class="card">
       <h2 class="h2">Who bought, who sold</h2>
       <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
-        <div class="stat" style="background: #E6F4EA">
-          <span style="font-size: 13px; font-weight: 700; color: #0E2A30">Individuals</span>
+        <button class="stat" onClick="{{whoInd}}" aria-pressed="{{indPressed}}" aria-label="Show individuals by nationality" style="background: #E6F4EA; border: 2px solid {{indBorder}}; text-align: left; cursor: pointer; font-family: inherit">
+          <span style="font-size: 13px; font-weight: 700; color: #0E2A30">Individuals ›</span>
           <span class="num" style="font-size: 20px; font-weight: 800; color: #1B6B34">+EGP 230.1mn</span>
           <span style="font-size: 12px; font-weight: 600; color: #1B6B34">Net buyers</span>
-        </div>
-        <div class="stat" style="background: #FDECEA">
-          <span style="font-size: 13px; font-weight: 700; color: #0E2A30">Institutions</span>
+        </button>
+        <button class="stat" onClick="{{whoInst}}" aria-pressed="{{instPressed}}" aria-label="Show institutions by nationality" style="background: #FDECEA; border: 2px solid {{instBorder}}; text-align: left; cursor: pointer; font-family: inherit">
+          <span style="font-size: 13px; font-weight: 700; color: #0E2A30">Institutions ›</span>
           <span class="num" style="font-size: 20px; font-weight: 800; color: #B42318">−EGP 230.1mn</span>
           <span style="font-size: 12px; font-weight: 600; color: #B42318">Net sellers</span>
-        </div>
+        </button>
       </div>
+      <span style="font-size: 13px; font-weight: 700; color: #003239">{{whoTitle}}</span>
       <div style="display: flex; flex-direction: column; gap: 12px">
         <sc-for list="{{flows}}" as="f" hint-placeholder-count="3">
-          <div style="display: grid; grid-template-columns: 84px minmax(0, 1fr) 76px; align-items: center; column-gap: 10px">
+          <div style="display: grid; grid-template-columns: 84px minmax(0, 1fr) 76px; align-items: center; column-gap: 10px; row-gap: 2px">
             <span style="font-size: 14px; font-weight: 600; color: #0E2A30">{{f.label}}</span>
             <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); height: 8px; background: #EEF2F3; border-radius: 999px; overflow: hidden">
               <div style="display: flex; justify-content: flex-end"><div style="width: {{f.negW}}; background: #D9483B"></div></div>
               <div style="display: flex; justify-content: flex-start"><div style="width: {{f.posW}}; background: #2E8B57"></div></div>
             </div>
             <span class="num" style="font-size: 13px; font-weight: 700; color: {{f.color}}; text-align: right">{{f.value}}</span>
+            <span></span><span class="mute" style="font-size: 11px">{{f.bs}}</span><span></span>
           </div>
         </sc-for>
       </div>
-      <span class="mute">EGP, net for the day</span>
+      <span class="mute">{{whoNote}}</span>
     </section>
 
   </div>
@@ -342,7 +429,7 @@ a{color:#C24100}a:hover{color:#8F3000}
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { screen: 'main', stock: null, tab: 'up', metric: 'turn', bar: 4, shown: 0, grown: false, hm: '30', sheet: null };
+    this.state = { screen: 'main', stock: null, tab: 'up', metric: 'turn', bar: 4, shown: 0, grown: false, hm: '30', sheet: null, who: 'all' };
   }
   componentDidMount() {
     this._t = setTimeout(() => { this.setState({ grown: true }); this.animateTo(this.days()[4].turn); }, 120);
@@ -587,8 +674,19 @@ class Component extends DCLogic {
       };
     }
 
-    const fl = [['Egyptians', 171.16], ['Arabs', -63.27], ['Foreigners', -107.89]];
-    const flows = fl.map(([label, v]) => ({ label, value: (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + 'mn', color: v >= 0 ? '#1B6B34' : '#B42318', posW: v > 0 ? Math.round((v / 180) * 100) + '%' : '0%', negW: v < 0 ? Math.round((-v / 180) * 100) + '%' : '0%' }));
+    // [label, net, buy, sell] in EGP mn, stocks only: buy/sell from Sigma Capital, net from Hapi Journal (12 Nov)
+    const FL = {
+      all: [['Egyptians', 171.160, 9162.61, 8991.45], ['Arabs', -63.269, 210.05, 273.32], ['Foreigners', -107.890, 844.85, 952.74]],
+      ind: [['Egyptians', 210.714, 7772.68, 7561.97], ['Arabs', 13.445, 187.91, 174.46], ['Foreigners', 5.895, 10.02, 4.12]],
+      inst: [['Egyptians', -39.554, 1389.93, 1429.48], ['Arabs', -76.714, 22.14, 98.86], ['Foreigners', -113.786, 834.83, 948.62]]
+    };
+    const who = this.state.who;
+    const fl = FL[who];
+    const fmax = Math.max(...fl.map((r) => Math.abs(r[1]))) * 1.05;
+    const n1 = (x) => x.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const flows = fl.map(([label, v, b, sl]) => ({ label, value: (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + 'mn', color: v >= 0 ? '#1B6B34' : '#B42318', posW: v > 0 ? Math.round((v / fmax) * 100) + '%' : '0%', negW: v < 0 ? Math.round((-v / fmax) * 100) + '%' : '0%', bs: 'Bought ' + n1(b) + ' · Sold ' + n1(sl) }));
+    const whoTitle = who === 'ind' ? 'Individuals by nationality' : who === 'inst' ? 'Institutions by nationality' : 'All investors by nationality';
+    const whoNote = who === 'all' ? 'EGP mn, net for the day. Tap Individuals or Institutions to split them by nationality.' : 'EGP mn, net for the day. Tap the card again to see all investors.';
 
     return {
       onMain: this.state.screen === 'main', onStock: this.state.screen === 'stock', backMain: () => this.setState({ screen: 'main' }),
@@ -607,7 +705,10 @@ class Component extends DCLogic {
       hm30Sel: hm === '30' ? 'true' : 'false', hm70Sel: hm === '70' ? 'true' : 'false', hmSecSel: hm === 'sec' ? 'true' : 'false',
       show30: hmGo('30'), show70: hmGo('70'), showSec: hmGo('sec'),
       hasSheet: !!this.state.sheet, sh, closeSheet: () => this.setState({ sheet: null }),
-      st, flows
+      st, flows, whoTitle, whoNote,
+      whoInd: () => this.setState({ who: who === 'ind' ? 'all' : 'ind' }), whoInst: () => this.setState({ who: who === 'inst' ? 'all' : 'inst' }),
+      indBorder: who === 'ind' ? '#1B6B34' : 'transparent', instBorder: who === 'inst' ? '#B42318' : 'transparent',
+      indPressed: who === 'ind' ? 'true' : 'false', instPressed: who === 'inst' ? 'true' : 'false',
     };
   }
 }
