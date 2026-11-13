@@ -142,6 +142,22 @@ a{color:#C24100}a:hover{color:#8F3000}
 .tip-box{display:none;position:absolute;left:-120px;top:26px;width:250px;z-index:5;padding:10px 12px;border-radius:12px;background:#003239;color:#FFFFFF;font:500 12px/1.45 'Hanken Grotesk',sans-serif;box-shadow:0 6px 18px rgba(0,50,57,0.25)}
 .tip:hover .tip-box,.tip:focus .tip-box,.tip:focus-within .tip-box{display:block}
 .tip:focus .tip-i{border-color:#003239;color:#003239}
+.va-row{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 6px;margin:0 -2px;scrollbar-width:none}
+.va-row::-webkit-scrollbar{display:none}
+.va{flex:0 0 232px;scroll-snap-align:start;border:1px solid #E3EAEC;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;background:#FFFFFF;text-align:left;cursor:pointer;font-family:inherit}
+.va:active{transform:scale(.99)}
+.va-top{display:flex;align-items:center;gap:10px;min-width:0}
+.va-name{font:700 14px 'Hanken Grotesk',sans-serif;color:#0E2A30;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.va-tk{font:600 11px 'Hanken Grotesk',sans-serif;color:#7A8F94}
+.va-x{display:flex;align-items:baseline;gap:6px}
+.va-big{font:800 28px/1 'Hanken Grotesk',sans-serif;color:#FF5700;letter-spacing:-.02em}
+.va-sub{font:600 12px 'Hanken Grotesk',sans-serif;color:#5B7076}
+.va-bars{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:12px;background:#F5F8F8}
+.va-b{display:grid;grid-template-columns:64px 1fr 52px;align-items:center;gap:8px;font:600 11px 'Hanken Grotesk',sans-serif;color:#5B7076}
+.va-track{height:8px;border-radius:4px;background:#E3EAEC;overflow:hidden}
+.va-fill{height:100%;border-radius:4px}
+.va-v{text-align:right;color:#0E2A30;font-variant-numeric:tabular-nums}
+.va-why{font:500 12px/1.4 'Hanken Grotesk',sans-serif;color:#4A6168;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:34px}
 .pills{display:flex;align-items:center;justify-content:space-between;margin:6px 12px 4px 16px}
 .pills .lbl{font:600 12px 'Hanken Grotesk',sans-serif;color:#5B7076}
 .pills .grp{display:flex;gap:2px;padding:3px;border-radius:10px;background:#F1F5F6}
@@ -202,6 +218,34 @@ a{color:#C24100}a:hover{color:#8F3000}
       </div>
     </section>
 
+    <section aria-label="Unusual activity" class="card" style="gap: 12px">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <div style="display: flex; align-items: center; gap: 6px">
+          <h2 class="h2">Unusual activity</h2>
+          <span class="tip" tabindex="0" role="button" aria-label="What this shows"><span class="tip-i" aria-hidden="true">i</span><span class="tip-box" role="tooltip">Stocks that traded far more shares than usual today. The multiple compares today's shares traded with the stock's average over the last 10 sessions. Heavy volume often comes before or with news, so it is a signal to look closer, not a buy or sell call.</span></span>
+        </div>
+        <span class="mute" style="font-size: 12px">Swipe ›</span>
+      </div>
+      <div class="va-row">
+        <sc-for list="{{alerts}}" as="va" hint-placeholder-count="3">
+          <button class="va" onClick="{{va.open}}" aria-label="{{va.aria}}">
+            <div class="va-top">
+              <span aria-hidden="true" style="flex: 0 0 36px; width: 36px; height: 36px; border-radius: 50%; background: #E6EEF0; color: #003239; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800">{{va.initials}}</span>
+              <span style="display: flex; flex-direction: column; min-width: 0">
+                <span class="va-name">{{va.name}}</span>
+                <span class="va-tk">{{va.ticker}} · <span style="color: {{va.chgColor}}">{{va.chgTxt}}</span></span>
+              </span>
+            </div>
+            <div class="va-x"><span class="va-big">{{va.mult}}</span><span class="va-sub">its usual volume</span></div>
+            <div class="va-bars">
+              <div class="va-b"><span>10-day avg</span><span class="va-track"><span class="va-fill" style="display: block; width: {{va.avgW}}; background: #A9C4CA"></span></span><span class="va-v">{{va.avg}}</span></div>
+              <div class="va-b"><span>Today</span><span class="va-track"><span class="va-fill" style="display: block; width: 100%; background: #003239"></span></span><span class="va-v">{{va.today}}</span></div>
+            </div>
+            <span class="va-why">{{va.why}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
     <section aria-label="Today's market breadth" class="card" style="gap: 10px">
       <div style="display: flex; justify-content: space-between; align-items: baseline">
         <h2 class="h2">Today's market breadth</h2>
@@ -597,6 +641,10 @@ class Component extends DCLogic {
       const pick = tab === 'up' ? pool.slice().sort((a, b) => b.chg - a.chg) : tab === 'down' ? pool.slice().sort((a, b) => a.chg - b.chg) : pool.slice().sort((a, b) => b.val - a.val);
       items = pick.slice(0, 5).map(({ k, s, chg, val }) => ({ initials: ini(s.name), name: s.name, line: tab === 'traded' ? 'EGP ' + val.toFixed(1) + 'bn traded ' + periodName : s.ticker, priceTxt: 'EGP ' + s.price.toFixed(2), chgTxt: egpChg(s.price, chg), dir: dirOf(chg), aria: s.name + ', ' + egpChg(s.price, chg), open: openStock(k) }));
     }
+    // Volume alerts, 12 Nov: shares traded vs 10-day average (Beltone Egypt In Sight)
+    const VA = [['EAST', 10.18, 1.79, 5.68, 'Moved down to the MSCI Egypt Small Cap index; fell about 5.7% early before recovering.'], ['OLFI', 1.97, 0.5121, 3.85, 'No company news was published.'], ['ETEL', 4.81, 1.53, 3.14, 'Promoted to the MSCI Egypt standard index and reported nine-month results.']];
+    const fmtSh = (m) => (m >= 1 ? m.toFixed(2) + 'M' : Math.round(m * 1000) + 'K');
+    const alerts = VA.map(([k, today, avg, mult, why]) => { const s = S[k]; const c = s ? s.chg : 0; return { initials: ini(s.name), name: s.name, ticker: k, chgTxt: (c > 0 ? '+' : c < 0 ? '−' : '') + Math.abs(c).toFixed(2) + '%', chgColor: c > 0 ? '#1B6B34' : c < 0 ? '#B42318' : '#5B7076', mult: mult.toFixed(1) + '×', avg: fmtSh(avg), today: fmtSh(today), avgW: Math.max(4, Math.round((avg / today) * 100)) + '%', why, aria: s.name + ', ' + mult.toFixed(1) + ' times its usual volume', open: openStock(k) }; });
     const periods = PERIODS.map(([id, label]) => ({ label, cls: period === id ? 'on' : '', sel: period === id ? 'true' : 'false', pick: () => this.setState({ period: id }) }));
     const go = (k) => () => this.setState({ tab: k });
 
@@ -748,7 +796,7 @@ class Component extends DCLogic {
       hm30Sel: hm === '30' ? 'true' : 'false', hm70Sel: hm === '70' ? 'true' : 'false', hmSecSel: hm === 'sec' ? 'true' : 'false',
       show30: hmGo('30'), show70: hmGo('70'), showSec: hmGo('sec'),
       hasSheet: !!this.state.sheet, sh, closeSheet: () => this.setState({ sheet: null }),
-      st, flows, whoTitle, whoNote, periods, periodLbl: { D: 'Today', W: 'This week', M: 'This month', '6M': 'Last 6 months', Y: 'Last year' }[period],
+      st, flows, whoTitle, whoNote, periods, alerts, periodLbl: { D: 'Today', W: 'This week', M: 'This month', '6M': 'Last 6 months', Y: 'Last year' }[period],
       whoInd: () => this.setState({ who: 'ind' }), whoInst: () => this.setState({ who: 'inst' }),
       whoAll: () => this.setState({ who: 'all' }), whoIndTab: () => this.setState({ who: 'ind' }), whoInstTab: () => this.setState({ who: 'inst' }),
       whoAllCls: who === 'all' ? 'on' : '', whoIndCls: who === 'ind' ? 'on' : '', whoInstCls: who === 'inst' ? 'on' : '', whoAllSel: who === 'all' ? 'true' : 'false',
