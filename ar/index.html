@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>حركة السوق</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./dc-runtime.js"></script>
+</head>
+<body>
+<template id="dc-tpl"><x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C24100}a:hover{color:#8F3000}
+.scroll::-webkit-scrollbar{display:none}
+.tab{flex:1;height:40px;border:0;border-radius:10px;background:transparent;color:#4A6168;font:500 14px 'IBM Plex Sans Arabic',sans-serif;cursor:pointer}
+.tab.on{background:#FFFFFF;color:#003239;font-weight:700;box-shadow:0 1px 3px rgba(0,50,57,0.15)}
+.chg{font:600 13px 'IBM Plex Sans Arabic',sans-serif;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.chg.up{color:#1B6B34;background:#E6F4EA}
+.chg.down{color:#B42318;background:#FDECEA}
+.row{width:100%;display:flex;flex-direction:column;gap:6px;padding:14px 16px;border:0;border-top:1px solid #EDF1F2;background:#FFFFFF;text-align:right;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif}
+.row:first-child{border-top:0}
+.row:focus-visible,.tab:focus-visible,.switch:focus-visible{outline:2px solid #FF5700;outline-offset:2px}
+.switch{width:44px;height:26px;border-radius:999px;border:0;background:#C9D3D5;position:relative;cursor:pointer;flex:none}
+.switch.on{background:#003239}
+.knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#FFFFFF;transition:left .15s}
+.switch.on .knob{left:21px}
+.flip{transform:scaleX(-1)}
+</style>
+</helmet>
+<div dir="rtl" style="width: 390px; height: 844px; display: flex; flex-direction: column; background: #F2F5F6; font-family: 'IBM Plex Sans Arabic', sans-serif; color: #0E2A30; overflow: hidden">
+  <div style="background: #003239; padding: 18px 16px 30px; display: flex; flex-direction: column; gap: 6px">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <button aria-label="رجوع" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="flip"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+      </button>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+        <span style="color: #FFFFFF; font-size: 19px; font-weight: 600">حركة السوق</span>
+        <span style="color: #B9CDD1; font-size: 12px">الخميس 12 نوفمبر · السوق قفل</span>
+      </div>
+      <button aria-label="بحث" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="scroll" style="flex: 1; overflow-y: auto; margin-top: -18px; border-radius: 22px 22px 0 0; background: #F2F5F6; padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 14px">
+
+    <section aria-label="السوق النهارده" style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 12px; font-weight: 600; color: #C24100">السوق النهارده</span>
+        <span style="font-size: 18px; font-weight: 700; color: #003239; line-height: 1.3">الأسهم النازلة أكتر من الطالعة. الأسهم الكبيرة نزلت، والصغيرة صمدت.</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div aria-hidden="true" style="display: flex; height: 10px; border-radius: 999px; overflow: hidden; gap: 2px">
+          <div style="flex: 92; background: #2E8B57"></div>
+          <div style="flex: 16; background: #C9D3D5"></div>
+          <div style="flex: 127; background: #D9483B"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px">
+          <span style="color: #1B6B34; font-weight: 600">92 طلعوا</span>
+          <span style="color: #4A6168">16 ثابتين</span>
+          <span style="color: #B42318; font-weight: 600">127 نزلوا</span>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <div style="background: #F2F5F6; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 12px; color: #4A6168">اتداول النهارده</span>
+          <span style="font-size: 16px; font-weight: 700; color: #003239">10.3 مليار جنيه</span>
+          <span style="font-size: 12px; color: #4A6168">أنشط من المعتاد بـ 5%</span>
+        </div>
+        <div style="background: #F2F5F6; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 12px; color: #4A6168">الكبيرة قصاد الصغيرة</span>
+          <span style="font-size: 14px; font-weight: 600; color: #B42318">EGX30 −0.91%</span>
+          <span style="font-size: 14px; font-weight: 600; color: #1B6B34">EGX70 +0.43%</span>
+        </div>
+      </div>
+    </section>
+
+    <div role="tablist" aria-label="القوايم" style="display: flex; gap: 4px; background: #E3EAEC; border-radius: 12px; padding: 4px">
+      <button role="tab" aria-selected="{{upSel}}" class="tab {{upCls}}" onClick="{{showUp}}">الأكتر طلوعًا</button>
+      <button role="tab" aria-selected="{{downSel}}" class="tab {{downCls}}" onClick="{{showDown}}">الأكتر نزولًا</button>
+      <button role="tab" aria-selected="{{tradedSel}}" class="tab {{tradedCls}}" onClick="{{showTraded}}">الأعلى تداولًا</button>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 4px">
+      <label for="thin" style="display: flex; flex-direction: column; gap: 2px; cursor: pointer">
+        <span style="font-size: 14px; font-weight: 600; color: #003239">اخفي الأسهم قليلة التداول</span>
+        <span style="font-size: 12px; color: #4A6168">أسعار اتحركت بعمليات قليلة جدًا</span>
+      </label>
+      <button id="thin" role="switch" aria-checked="{{hideThin}}" class="switch {{switchCls}}" onClick="{{toggleThin}}"><span class="knob"></span></button>
+    </div>
+
+    <section aria-label="{{listLabel}}" style="background: #FFFFFF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column">
+      <sc-for list="{{items}}" as="item" hint-placeholder-count="5">
+        <button class="row" aria-expanded="{{item.isOpen}}" onClick="{{item.toggle}}">
+          <div style="display: flex; align-items: center; gap: 12px; width: 100%">
+            <span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 50%; background: #E6EEF0; color: #003239; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex: none">{{item.initials}}</span>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 15px; font-weight: 600; color: #0E2A30; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{item.name}}</span>
+              <span style="font-size: 13px; color: #4A6168">{{item.sub}}</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; flex: none">
+              <span style="font-size: 15px; font-weight: 600; color: #0E2A30">{{item.price}}</span>
+              <span class="chg {{item.dir}}">{{item.chg}}</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; padding-right: 52px; flex-wrap: wrap">
+            <sc-if value="{{item.thin}}" hint-placeholder-val="{{ false }}">
+              <span style="font-size: 11px; font-weight: 700; color: #8A4B00; background: #FFF1DC; border-radius: 6px; padding: 2px 6px">تداول قليل</span>
+            </sc-if>
+            <sc-if value="{{item.hasWhy}}" hint-placeholder-val="{{ true }}">
+              <span style="font-size: 13px; color: #4A6168; line-height: 1.4">{{item.why}}</span>
+            </sc-if>
+          </div>
+          <sc-if value="{{item.isOpen}}" hint-placeholder-val="{{ false }}">
+            <div style="margin-right: 52px; background: #F2F5F6; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 13px; color: #0E2A30; line-height: 1.45">{{item.detail}}</span>
+              <span style="font-size: 12px; color: #4A6168">المصدر: {{item.source}}</span>
+              <span style="font-size: 13px; font-weight: 600; color: #C24100">شوف السهم</span>
+            </div>
+          </sc-if>
+        </button>
+      </sc-for>
+    </section>
+
+    <sc-if value="{{showThinNote}}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 0; padding: 0 4px; font-size: 12px; color: #4A6168; line-height: 1.5">{{thinNote}}</p>
+    </sc-if>
+
+    <a href="#" style="display: flex; align-items: center; gap: 12px; background: #003239; border-radius: 16px; padding: 14px 16px; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7DF700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M10 8.5l5 3.5-5 3.5z"></path></svg>
+      <span style="display: flex; flex-direction: column; gap: 2px">
+        <span style="color: #FFFFFF; font-size: 14px; font-weight: 600">جديد في البورصة؟ ليه سهم يطلع 10% في يوم؟</span>
+        <span style="color: #B9CDD1; font-size: 12px">Byte دقيقتين في Learn</span>
+      </span>
+    </a>
+
+    <p style="margin: 0; padding: 0 4px; font-size: 11px; color: #4A6168; line-height: 1.5">الأسعار عند قفلة 2:30 الضهر. المصادر: البورصة المصرية عن طريق بلتون وفودة لينس وحابي. للمعلومة بس، ومش توصية بالشرا أو البيع.</p>
+  </div>
+</div>
+</x-dc></template>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'up', hideThin: false, open: null };
+  }
+  renderVals() {
+    const data = {
+      up: [
+        { id: 'infi', initials: 'فو', name: 'الإسماعيلية الوطنية (فوديكو)', sub: 'INFI', price: '147.88 جنيه', chg: '+17.52%', dir: 'up', thin: false, why: 'تداول 13 مرة المعتاد · مافيش خبر عن الشركة', detail: 'طلع 17.52% بتداول حوالي 13 مرة مستواه المعتاد، ومن غير أي إفصاح من الشركة. الحركات الكبيرة من غير خبر ممكن ترجع بسرعة.', source: 'فودة لينس؛ إفصاحات البورصة' },
+        { id: 'atlc', initials: 'تو', name: 'التوفيق للتأجير التمويلي', sub: 'ATLC', price: '5.61 جنيه', chg: '+8.72%', dir: 'up', thin: false, why: 'تداول 4.6 مرة المعتاد · مافيش خبر عن الشركة', detail: 'طلع 8.72% بتداول حوالي 4.6 مرة مستواه المعتاد، من غير إفصاح من الشركة.', source: 'فودة لينس' },
+        { id: 'dtpp', initials: 'دل', name: 'دلتا للطباعة والتغليف', sub: 'DTPP', price: '64.60 جنيه', chg: '+8.03%', dir: 'up', thin: false, why: 'كان طالع حوالي 17% في الجلسة وبعدين هدي', detail: 'طلع حوالي 17% خلال الجلسة وبعدين رجع نص المكسب وقفل طالع 8.03%. التداول كان 4.3 مرة المعتاد.', source: 'فودة لينس' },
+        { id: 'roto', initials: 'رو', name: 'رواد السياحة', sub: 'ROTO', price: '36.80 جنيه', chg: '+5.87%', dir: 'up', thin: false, why: 'مافيش خبر عن الشركة', detail: 'طلع 5.87% من غير إفصاح من الشركة، بتداول حوالي 1.8 مرة المعتاد.', source: 'فودة لينس' },
+        { id: 'hdbk', initials: 'تع', name: 'بنك التعمير والإسكان', sub: 'HDBK', price: '108.99 جنيه', chg: '+5.79%', dir: 'up', thin: false, why: 'اتضاف لمؤشر MSCI مصر للشركات الصغيرة', detail: 'طلع 5.79% بعد ما اتضاف لمؤشر MSCI مصر للشركات الصغيرة، وده ممكن يجيب شرا من الصناديق اللي بتتابعه. التداول كان 4.4 مرة المعتاد.', source: 'بلتون؛ فودة لينس' }
+      ],
+      down: [
+        { id: 'prcl', initials: 'شي', name: 'العامة للخزف والصيني (شيني)', sub: '', price: '21.00 جنيه', chg: '−6.00%', dir: 'down', thin: false, why: 'تداول 6.3 مرة المعتاد · مافيش خبر عن الشركة', detail: 'نزل 6.00% بتداول حوالي 6.3 مرة المعتاد، من غير إفصاح من الشركة.', source: 'فودة لينس' },
+        { id: 'cpme', initials: 'كا', name: 'كاتليست بارتنرز ميديل إيست', sub: '', price: '36.69 جنيه', chg: '−5.66%', dir: 'down', thin: true, why: '11 عملية بس طول اليوم', detail: 'نزل 5.66% على 11 عملية بس بحوالي 0.6 مليون جنيه. مع تداول قليل كده، كام أمر ممكن يحركوا السعر جامد.', source: 'فودة لينس' },
+        { id: 'ccrs', initials: 'خك', name: 'الخليجية الكندية للاستثمار العقاري', sub: 'عقارات', price: '2.08 جنيه', chg: '−5.02%', dir: 'down', thin: false, why: 'تداول 3.2 مرة المعتاد', detail: 'نزل 5.02% بتداول حوالي 3.2 مرة المعتاد.', source: 'فودة لينس' },
+        { id: 'bioc', initials: 'جل', name: 'جلاكسو سميثكلاين مصر', sub: 'رعاية صحية', price: '421.01 جنيه', chg: '−4.32%', dir: 'down', thin: false, why: 'بيرجع جزء من طلوع الأربع 14%', detail: 'نزل 4.32% بعد يوم من طلوعه حوالي 14%. وكان تالت أعلى سهم تداولًا في اليوم.', source: 'بلتون' },
+        { id: 'fire', initials: 'أو', name: 'الأولى للاستثمار والتنمية العقارية', sub: 'عقارات', price: '[السعر] جنيه', chg: '−3.63%', dir: 'down', thin: true, why: '64 عملية بس طول اليوم', detail: 'نزل 3.63% على 64 عملية بس بحوالي 0.3 مليون جنيه، فالحركة مش بتقول كتير عن الشركة.', source: 'فودة لينس' }
+      ],
+      traded: [
+        { id: 'etel', initials: 'تل', name: 'المصرية للاتصالات', sub: 'اتداول بـ 648 مليون جنيه', price: '133.00 جنيه', chg: '−1.49%', dir: 'down', thin: false, why: 'حجم 3.1 مرة المعتاد · اترقى في MSCI مصر', detail: 'أعلى سهم تداولًا في اليوم، بحجم حوالي 3.1 مرة متوسط 10 أيام. واترقى لمؤشر MSCI مصر الرئيسي.', source: 'بلتون؛ فودة لينس' },
+        { id: 'crst', initials: 'كر', name: 'كريست مارك للمقاولات', sub: 'اتداول بـ [القيمة]', price: '3.03 جنيه', chg: '+1.00%', dir: 'up', thin: false, why: '', detail: 'تاني أعلى سهم تداولًا في اليوم.', source: 'بلتون' },
+        { id: 'bioc2', initials: 'جل', name: 'جلاكسو سميثكلاين مصر', sub: 'اتداول بـ 445 مليون جنيه', price: '421.01 جنيه', chg: '−4.32%', dir: 'down', thin: false, why: 'تداول 2.9 مرة المعتاد', detail: 'نزل 4.32% بعد يوم من طلوعه حوالي 14%، والتداول كان حوالي 2.9 مرة المعتاد.', source: 'بلتون؛ فودة لينس' },
+        { id: 'korra', initials: 'قر', name: 'قرة للطاقة', sub: 'اتداول بـ [القيمة]', price: '2.12 جنيه', chg: '+0.95%', dir: 'up', thin: false, why: '', detail: 'رابع أعلى سهم تداولًا في اليوم.', source: 'بلتون' },
+        { id: 'gtwl', initials: 'جو', name: 'جولدن تكس', sub: 'اتداول بـ [القيمة]', price: '150.50 جنيه', chg: '+1.52%', dir: 'up', thin: false, why: '', detail: 'خامس أعلى سهم تداولًا في اليوم.', source: 'بلتون' }
+      ]
+    };
+    const tab = this.state.tab;
+    const all = data[tab];
+    const shown = this.state.hideThin ? all.filter((x) => !x.thin) : all;
+    const thinCount = all.filter((x) => x.thin).length;
+    const items = shown.map((x) => ({
+      ...x,
+      hasWhy: !!x.why,
+      isOpen: this.state.open === x.id,
+      toggle: () => this.setState({ open: this.state.open === x.id ? null : x.id })
+    }));
+    const pick = (t) => () => this.setState({ tab: t, open: null });
+    let thinNote = '';
+    if (thinCount && !this.state.hideThin) thinNote = thinCount + ' من دول اتحركوا بعمليات قليلة جدًا. شغّل "اخفي الأسهم قليلة التداول" عشان تركز على الحركات اللي وراها تداول حقيقي.';
+    if (thinCount && this.state.hideThin) thinNote = 'مخفيين ' + thinCount + ' أسهم قليلة التداول من القايمة دي.';
+    return {
+      items,
+      upCls: tab === 'up' ? 'on' : '', downCls: tab === 'down' ? 'on' : '', tradedCls: tab === 'traded' ? 'on' : '',
+      upSel: tab === 'up' ? 'true' : 'false', downSel: tab === 'down' ? 'true' : 'false', tradedSel: tab === 'traded' ? 'true' : 'false',
+      showUp: pick('up'), showDown: pick('down'), showTraded: pick('traded'),
+      listLabel: tab === 'up' ? 'الأكتر طلوعًا' : tab === 'down' ? 'الأكتر نزولًا' : 'الأعلى تداولًا',
+      hideThin: this.state.hideThin ? 'true' : 'false',
+      switchCls: this.state.hideThin ? 'on' : '',
+      toggleThin: () => this.setState({ hideThin: !this.state.hideThin, open: null }),
+      showThinNote: thinCount > 0,
+      thinNote
+    };
+  }
+}
+</script>
+</body>
+</html>
