@@ -137,10 +137,17 @@ a{color:#C24100}a:hover{color:#8F3000}
 .bx{flex:1;border:0;background:transparent;padding:12px 6px 14px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-family:'Hanken Grotesk',sans-serif;border-radius:14px;transition:background .15s}
 .bx:hover{background:#FFFFFF}
 .bx:focus-visible{outline:2px solid #FF5700;outline-offset:-2px}
-.pills{display:flex;gap:6px;margin:2px 12px 0;overflow-x:auto}
-.pill{flex:0 0 auto;height:30px;padding:0 12px;border-radius:999px;border:1px solid #DDE5E7;background:#FFFFFF;color:#4A6168;font:600 12px 'Hanken Grotesk',sans-serif;cursor:pointer}
-.pill.on{background:#003239;border-color:#003239;color:#FFFFFF}
-.sample{margin:4px 12px 0;padding:8px 10px;border-radius:10px;background:#FFF4EC;color:#8F3000;font:600 12px 'Hanken Grotesk',sans-serif}
+.tip{position:relative;display:inline-flex;outline:none;cursor:pointer}
+.tip-i{width:18px;height:18px;border-radius:50%;border:1.5px solid #5B7076;color:#5B7076;font:700 11px/15px 'Hanken Grotesk',sans-serif;text-align:center;box-sizing:border-box}
+.tip-box{display:none;position:absolute;left:-120px;top:26px;width:250px;z-index:5;padding:10px 12px;border-radius:12px;background:#003239;color:#FFFFFF;font:500 12px/1.45 'Hanken Grotesk',sans-serif;box-shadow:0 6px 18px rgba(0,50,57,0.25)}
+.tip:hover .tip-box,.tip:focus .tip-box,.tip:focus-within .tip-box{display:block}
+.tip:focus .tip-i{border-color:#003239;color:#003239}
+.pills{display:flex;align-items:center;justify-content:space-between;margin:4px 16px 2px}
+.pills .lbl{font:600 12px 'Hanken Grotesk',sans-serif;color:#7A8F94}
+.pills .grp{display:flex;gap:2px}
+.pill{min-width:38px;height:28px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:#7A8F94;font:700 12px 'Hanken Grotesk',sans-serif;cursor:pointer;transition:background .15s,color .15s}
+.pill:hover{color:#003239}
+.pill.on{background:#E6F0F1;color:#003239}
 .stat{background:#F5F8F8;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px}
 </style>
 </helmet>
@@ -171,13 +178,13 @@ a{color:#C24100}a:hover{color:#8F3000}
         <button role="tab" aria-selected="{{tradedSel}}" class="tab {{tradedCls}}" onClick="{{showTraded}}">Turnover</button>
       </div>
       <div class="pills" role="group" aria-label="Period">
-        <sc-for list="{{periods}}" as="pd" hint-placeholder-count="5">
-          <button class="pill {{pd.cls}}" aria-pressed="{{pd.sel}}" onClick="{{pd.pick}}">{{pd.label}}</button>
-        </sc-for>
+        <span class="lbl">{{periodLbl}}</span>
+        <span class="grp">
+          <sc-for list="{{periods}}" as="pd" hint-placeholder-count="5">
+            <button class="pill {{pd.cls}}" aria-pressed="{{pd.sel}}" onClick="{{pd.pick}}">{{pd.label}}</button>
+          </sc-for>
+        </span>
       </div>
-      <sc-if value="{{isSample}}" hint-placeholder-val="{{ false }}">
-        <div class="sample">{{sampleTxt}}</div>
-      </sc-if>
       <div style="display: flex; flex-direction: column">
         <sc-for list="{{items}}" as="item" hint-placeholder-count="5">
           <button class="row" onClick="{{item.open}}" aria-label="{{item.aria}}">
@@ -285,8 +292,10 @@ a{color:#C24100}a:hover{color:#8F3000}
     </section>
 
     <section aria-label="Who was buying and selling" class="card">
-      <h2 class="h2">Who bought, who sold</h2>
-      <span class="mute" style="margin-top: -8px">Each group's buying minus its selling today, in EGP. Positive means the group bought more than it sold.</span>
+      <div style="display: flex; align-items: center; gap: 6px">
+        <h2 class="h2">Who bought, who sold</h2>
+        <span class="tip" tabindex="0" role="button" aria-label="What these numbers mean"><span class="tip-i" aria-hidden="true">i</span><span class="tip-box" role="tooltip">Each group's buying minus its selling today, in EGP. Positive means the group bought more than it sold.</span></span>
+      </div>
       <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
         <button class="stat" onClick="{{whoInd}}" aria-pressed="{{indPressed}}" aria-label="Show individuals by nationality" style="background: #E6F4EA; border: 2px solid {{indBorder}}; text-align: left; cursor: pointer; font-family: inherit">
           <span style="font-size: 13px; font-weight: 700; color: #0E2A30">Individuals</span>
@@ -569,7 +578,7 @@ class Component extends DCLogic {
     const lists = { up: ['INFI', 'ATLC', 'DTPP', 'ROTO', 'HDBK'], down: ['PRCL', 'CPME', 'CCRS', 'BIOC'], traded: ['ETEL', 'CRST', 'BIOC', 'KORA', 'GTWL'] };
     const tab = this.state.tab;
     const period = this.state.period;
-    const PERIODS = [['D', 'Daily'], ['W', 'Week'], ['M', 'Month'], ['6M', '6 months'], ['Y', 'Year']];
+    const PERIODS = [['D', '1D'], ['W', '1W'], ['M', '1M'], ['6M', '6M'], ['Y', '1Y']];
     const periodName = { D: 'today', W: 'this week', M: 'this month', '6M': 'the last 6 months', Y: 'the last year' }[period];
     const ini = (n) => n.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
     let items;
@@ -584,7 +593,7 @@ class Component extends DCLogic {
       const seed = (k) => { let h = 7; for (const c of k + period) h = (h * 31 + c.charCodeAt(0)) % 100003; return h / 100003; };
       const pool = Object.keys(T).map((k) => { const s = S[k]; const r = seed(k); return { k, s, chg: (r - 0.42) * span, val: (s.mcap || 10) * (0.0008 + ((r * 7919) % 1) * 0.0016) * { W: 5, M: 21, '6M': 125, Y: 250 }[period] }; });
       const pick = tab === 'up' ? pool.slice().sort((a, b) => b.chg - a.chg) : tab === 'down' ? pool.slice().sort((a, b) => a.chg - b.chg) : pool.slice().sort((a, b) => b.val - a.val);
-      items = pick.slice(0, 5).map(({ k, s, chg, val }) => ({ initials: ini(s.name), name: s.name, line: tab === 'traded' ? 'Sample: EGP ' + val.toFixed(1) + 'bn traded ' + periodName : 'Sample figure · ' + s.ticker, priceTxt: 'EGP ' + s.price.toFixed(2), chgTxt: P(chg), dir: dirOf(chg), aria: s.name + ', sample ' + P(chg), open: openStock(k) }));
+      items = pick.slice(0, 5).map(({ k, s, chg, val }) => ({ initials: ini(s.name), name: s.name, line: tab === 'traded' ? 'EGP ' + val.toFixed(1) + 'bn traded ' + periodName : s.ticker, priceTxt: 'EGP ' + s.price.toFixed(2), chgTxt: P(chg), dir: dirOf(chg), aria: s.name + ', ' + P(chg), open: openStock(k) }));
     }
     const periods = PERIODS.map(([id, label]) => ({ label, cls: period === id ? 'on' : '', sel: period === id ? 'true' : 'false', pick: () => this.setState({ period: id }) }));
     const go = (k) => () => this.setState({ tab: k });
@@ -737,7 +746,7 @@ class Component extends DCLogic {
       hm30Sel: hm === '30' ? 'true' : 'false', hm70Sel: hm === '70' ? 'true' : 'false', hmSecSel: hm === 'sec' ? 'true' : 'false',
       show30: hmGo('30'), show70: hmGo('70'), showSec: hmGo('sec'),
       hasSheet: !!this.state.sheet, sh, closeSheet: () => this.setState({ sheet: null }),
-      st, flows, whoTitle, whoNote, periods, isSample: period !== 'D', sampleTxt: 'Sample figures for ' + periodName + ', to show the layout only. Not real market data.',
+      st, flows, whoTitle, whoNote, periods, periodLbl: { D: 'Today', W: 'This week', M: 'This month', '6M': 'Last 6 months', Y: 'Last year' }[period],
       whoInd: () => this.setState({ who: 'ind' }), whoInst: () => this.setState({ who: 'inst' }),
       whoAll: () => this.setState({ who: 'all' }), whoIndTab: () => this.setState({ who: 'ind' }), whoInstTab: () => this.setState({ who: 'inst' }),
       whoAllCls: who === 'all' ? 'on' : '', whoIndCls: who === 'ind' ? 'on' : '', whoInstCls: who === 'inst' ? 'on' : '', whoAllSel: who === 'all' ? 'true' : 'false',
