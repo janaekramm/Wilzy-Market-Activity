@@ -142,12 +142,12 @@ a{color:#C24100}a:hover{color:#8F3000}
 .tip-box{display:none;position:absolute;left:-120px;top:26px;width:250px;z-index:5;padding:10px 12px;border-radius:12px;background:#003239;color:#FFFFFF;font:500 12px/1.45 'Hanken Grotesk',sans-serif;box-shadow:0 6px 18px rgba(0,50,57,0.25)}
 .tip:hover .tip-box,.tip:focus .tip-box,.tip:focus-within .tip-box{display:block}
 .tip:focus .tip-i{border-color:#003239;color:#003239}
-.pills{display:flex;align-items:center;justify-content:space-between;margin:4px 16px 2px}
-.pills .lbl{font:600 12px 'Hanken Grotesk',sans-serif;color:#7A8F94}
-.pills .grp{display:flex;gap:2px}
-.pill{min-width:38px;height:28px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:#7A8F94;font:700 12px 'Hanken Grotesk',sans-serif;cursor:pointer;transition:background .15s,color .15s}
+.pills{display:flex;align-items:center;justify-content:space-between;margin:6px 12px 4px 16px}
+.pills .lbl{font:600 12px 'Hanken Grotesk',sans-serif;color:#5B7076}
+.pills .grp{display:flex;gap:2px;padding:3px;border-radius:10px;background:#F1F5F6}
+.pill{min-width:36px;height:26px;padding:0 8px;border:0;border-radius:7px;background:transparent;color:#7A8F94;font:700 11.5px 'Hanken Grotesk',sans-serif;letter-spacing:.02em;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s}
 .pill:hover{color:#003239}
-.pill.on{background:#E6F0F1;color:#003239}
+.pill.on{background:#FFFFFF;color:#003239;box-shadow:0 1px 3px rgba(0,50,57,.16)}
 .stat{background:#F5F8F8;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px}
 </style>
 </helmet>
@@ -294,7 +294,7 @@ a{color:#C24100}a:hover{color:#8F3000}
     <section aria-label="Who was buying and selling" class="card">
       <div style="display: flex; align-items: center; gap: 6px">
         <h2 class="h2">Who bought, who sold</h2>
-        <span class="tip" tabindex="0" role="button" aria-label="What these numbers mean"><span class="tip-i" aria-hidden="true">i</span><span class="tip-box" role="tooltip">Each group's buying minus its selling today, in EGP. Positive means the group bought more than it sold.</span></span>
+        <span class="tip" tabindex="0" role="button" aria-label="What these numbers mean"><span class="tip-i" aria-hidden="true">i</span><span class="tip-box" role="tooltip">Each group's buying minus its selling today, in EGP. Positive means the group bought more than it sold.<span style="display:block;margin-top:8px"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#2E8B57;margin-right:6px"></span>Green bar: bought more than sold</span><span style="display:block;margin-top:4px"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#D9483B;margin-right:6px"></span>Red bar: sold more than bought</span><span style="display:block;margin-top:8px;opacity:.75">Figures in EGP mn, stocks only.</span></span></span>
       </div>
       <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
         <button class="stat" onClick="{{whoInd}}" aria-pressed="{{indPressed}}" aria-label="Show individuals by nationality" style="background: #E6F4EA; border: 2px solid {{indBorder}}; text-align: left; cursor: pointer; font-family: inherit">
@@ -327,7 +327,6 @@ a{color:#C24100}a:hover{color:#8F3000}
           </div>
         </sc-for>
       </div>
-      <span class="mute">{{whoNote}}</span>
     </section>
 
   </div>
