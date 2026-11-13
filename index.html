@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Market Activity</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./dc-runtime.js"></script>
+</head>
+<body>
+<template id="dc-tpl"><x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C24100}a:hover{color:#8F3000}
+.scroll::-webkit-scrollbar{display:none}
+.card{background:#FFFFFF;border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.h2{font-size:16px;font-weight:700;color:#003239;margin:0}
+.seg{display:flex;gap:2px;background:#EEF2F3;border-radius:12px;padding:3px}
+.tab{flex:1;height:34px;border:0;border-radius:10px;background:transparent;color:#5B7076;font:600 13px 'Hanken Grotesk',sans-serif;cursor:pointer}
+.tab.on{background:#FFFFFF;color:#003239;box-shadow:0 1px 3px rgba(0,50,57,0.14)}
+.chg{font:700 13px 'Hanken Grotesk',sans-serif;padding:3px 8px;border-radius:8px;white-space:nowrap;display:inline-block;min-width:62px;text-align:center;box-sizing:border-box}
+.chg.up{color:#1B6B34;background:#E6F4EA}
+.chg.down{color:#B42318;background:#FDECEA}
+.chg.flat{color:#4A6168;background:#EEF2F3}
+.row{width:100%;display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;column-gap:12px;padding:10px 16px;border:0;background:#FFFFFF;text-align:left;cursor:pointer;font-family:'Hanken Grotesk',sans-serif}
+.row + .row{border-top:1px solid #EEF2F3}
+.row:focus-visible,.tab:focus-visible,.tile:focus-visible,.bar:focus-visible,.srow:focus-visible{outline:2px solid #FF5700;outline-offset:2px}
+.tile{position:absolute;border:0;border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-family:'Hanken Grotesk',sans-serif;overflow:hidden;box-sizing:border-box;transition:filter .15s}
+.tile:hover{filter:brightness(1.06)}
+.t-u3{background:#1B6B34;color:#FFFFFF}.t-u2{background:#3E9A5F;color:#FFFFFF}.t-u1{background:#D3EEDB;color:#0E3B1F}
+.t-d3{background:#A3241A;color:#FFFFFF}.t-d2{background:#D9483B;color:#FFFFFF}.t-d1{background:#F8D5D0;color:#5C1009}
+.t-n{background:#E3EAEC;color:#0E2A30}
+.bar{border:0;padding:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;cursor:pointer;font-family:'Hanken Grotesk',sans-serif;height:100%}
+.barfill{width:72%;border-radius:8px 8px 4px 4px;transition:height .7s cubic-bezier(.2,.8,.2,1),background-color .2s}
+.srow{width:100%;display:grid;grid-template-columns:minmax(0,1fr) 70px 80px;align-items:center;column-gap:8px;padding:11px 0;border:0;background:transparent;text-align:left;cursor:pointer;font-family:'Hanken Grotesk',sans-serif}
+.srow + .srow{border-top:1px solid #EEF2F3}
+.mute{font-size:12px;color:#5B7076}
+.num{font-variant-numeric:tabular-nums}
+.segb{border:0;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;font:700 15px 'Hanken Grotesk',sans-serif;min-width:30px;padding:0 6px;transition:filter .15s}
+.segb:hover{filter:brightness(0.96)}
+.segb:focus-visible{outline:2px solid #FF5700;outline-offset:2px}
+.mrow{width:100%;display:grid;grid-template-columns:32px 70px minmax(0,1fr) 44px 16px;align-items:center;column-gap:10px;padding:10px 0;border:0;background:transparent;cursor:pointer;font-family:'Hanken Grotesk',sans-serif;text-align:left}
+.mrow + .mrow{border-top:1px solid #EEF2F3}
+.mrow:focus-visible{outline:2px solid #FF5700;outline-offset:2px}
+.mic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.ptab{border:0;background:transparent;font:600 15px 'Hanken Grotesk',sans-serif;color:#4A7A80;padding:14px 0;cursor:pointer;white-space:nowrap}
+.ptab.on{color:#0E2A30;box-shadow:inset 0 -3px 0 #003239}
+.rng{flex:1;height:36px;border:0;border-radius:10px;background:transparent;color:#B9CDD1;font:500 14px 'Hanken Grotesk',sans-serif;cursor:pointer}
+.rng.on{background:#FFFFFF;color:#003239;font-weight:700}
+.bx{flex:1;border:0;background:transparent;padding:12px 6px 14px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-family:'Hanken Grotesk',sans-serif;border-radius:14px;transition:background .15s}
+.bx:hover{background:#FFFFFF}
+.bx:focus-visible{outline:2px solid #FF5700;outline-offset:-2px}
+.stat{background:#F5F8F8;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; display: flex; flex-direction: column; background: #EEF2F3; font-family: 'Hanken Grotesk', sans-serif; color: #0E2A30; overflow: hidden">
+
+  <sc-if value="{{onMain}}" hint-placeholder-val="{{ true }}">
+  <div style="background: #003239; padding: 16px 16px 30px">
+    <div style="display: grid; grid-template-columns: 44px 1fr 44px; align-items: center">
+      <button aria-label="Back" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+      </button>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+        <span style="color: #FFFFFF; font-size: 18px; font-weight: 700">Market Activity</span>
+        <span style="color: #B9CDD1; font-size: 12px">Thu 12 Nov · Closed</span>
+      </div>
+      <button aria-label="Search" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="scroll" style="flex: 1; overflow-y: auto; margin-top: -18px; border-radius: 22px 22px 0 0; background: #EEF2F3; padding: 14px 14px 28px; display: flex; flex-direction: column; gap: 12px">
+
+    <section aria-label="Top movers" class="card" style="padding: 12px 0 6px; gap: 6px">
+      <div class="seg" role="tablist" aria-label="Lists" style="margin: 0 12px">
+        <button role="tab" aria-selected="{{upSel}}" class="tab {{upCls}}" onClick="{{showUp}}">Gainers</button>
+        <button role="tab" aria-selected="{{downSel}}" class="tab {{downCls}}" onClick="{{showDown}}">Losers</button>
+        <button role="tab" aria-selected="{{tradedSel}}" class="tab {{tradedCls}}" onClick="{{showTraded}}">Turnover</button>
+      </div>
+      <div style="display: flex; flex-direction: column">
+        <sc-for list="{{items}}" as="item" hint-placeholder-count="5">
+          <button class="row" onClick="{{item.open}}" aria-label="{{item.aria}}">
+            <span aria-hidden="true" style="width: 36px; height: 36px; border-radius: 50%; background: #E6EEF0; color: #003239; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800">{{item.initials}}</span>
+            <span style="min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 15px; font-weight: 600; color: #0E2A30; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{item.name}}</span>
+              <span class="mute" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{item.line}}</span>
+            </span>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
+              <span class="num" style="font-size: 14px; font-weight: 600; color: #0E2A30">{{item.priceTxt}}</span>
+              <span class="chg num {{item.dir}}">{{item.chgTxt}}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section aria-label="Today's market breadth" class="card" style="gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <h2 class="h2">Today's market breadth</h2>
+        <span class="mute">Tap to see stocks</span>
+      </div>
+      <div style="background: #F5F8F8; border-radius: 16px; overflow: hidden">
+        <div style="display: flex; align-items: stretch">
+          <button class="bx" onClick="{{openUp}}" aria-label="92 stocks rose, show them">
+            <span class="num" style="font-size: 26px; font-weight: 800; color: #1B6B34; line-height: 1">92</span>
+            <span style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #5B7076"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #2E8B57"></span>Rose · 39%</span>
+          </button>
+          <span aria-hidden="true" style="width: 1px; align-self: stretch; margin: 14px 0; background: #DDE5E7"></span>
+          <button class="bx" onClick="{{openFlat}}" aria-label="16 stocks unchanged, show them">
+            <span class="num" style="font-size: 26px; font-weight: 800; color: #5B7076; line-height: 1">16</span>
+            <span style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #5B7076"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #9AAEB2"></span>Flat · 7%</span>
+          </button>
+          <span aria-hidden="true" style="width: 1px; align-self: stretch; margin: 14px 0; background: #DDE5E7"></span>
+          <button class="bx" onClick="{{openDown}}" aria-label="127 stocks fell, show them">
+            <span class="num" style="font-size: 26px; font-weight: 800; color: #B42318; line-height: 1">127</span>
+            <span style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #5B7076"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #D9483B"></span>Fell · 54%</span>
+          </button>
+        </div>
+        <div aria-hidden="true" style="display: flex; height: 4px">
+          <span style="flex: 92; background: #2E8B57"></span><span style="flex: 16; background: #C9D3D5"></span><span style="flex: 127; background: #D9483B"></span>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Last 5 sessions" class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <h2 class="h2">Last 5 sessions</h2>
+        <span class="mute">{{dayLabel}}</span>
+      </div>
+      <div class="seg" role="tablist" aria-label="Metric">
+        <button role="tab" aria-selected="{{mTurnSel}}" class="tab {{mTurnCls}}" onClick="{{showTurn}}">Turnover</button>
+        <button role="tab" aria-selected="{{mVolSel}}" class="tab {{mVolCls}}" onClick="{{showVol}}">Volume</button>
+        <button role="tab" aria-selected="{{mTradesSel}}" class="tab {{mTradesCls}}" onClick="{{showTrades}}">Trades</button>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span class="num" style="font-size: 30px; font-weight: 800; color: #003239; letter-spacing: -0.5px">{{shownTxt}}</span>
+        <span class="chg num {{vsDir}}" style="min-width: 0">{{vsTxt}}</span>
+      </div>
+      <div style="position: relative; height: 140px">
+        <div onMouseLeave="{{resetBar}}" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); height: 100%; align-items: end">
+          <sc-for list="{{bars}}" as="b" hint-placeholder-count="5">
+            <button class="bar" aria-label="{{b.aria}}" onClick="{{b.pick}}" onMouseEnter="{{b.pick}}">
+              <span class="num" style="font-size: 11px; font-weight: 700; color: {{b.txtColor}}">{{b.valTxt}}</span>
+              <span class="barfill" style="height: {{b.h}}; background: {{b.color}}"></span>
+            </button>
+          </sc-for>
+        </div>
+        <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: {{avgBottom}}; border-top: 2px dashed #FF5700; transition: bottom .7s cubic-bezier(.2,.8,.2,1); pointer-events: none"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+        <sc-for list="{{bars}}" as="b" hint-placeholder-count="5">
+          <span style="font-size: 12px; color: {{b.dayColor}}; font-weight: {{b.dayWeight}}; text-align: center">{{b.day}}</span>
+        </sc-for>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px">
+        <span aria-hidden="true" style="width: 16px; border-top: 2px dashed #FF5700"></span>
+        <span class="mute">5-day average {{avgTxt}}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div class="stat"><span class="mute">EGX30 close</span><span class="num" style="font-size: 15px; font-weight: 800; color: #003239">{{dd.egx}}</span><span class="num" style="font-size: 12px; font-weight: 700; color: {{dd.egxColor}}">{{dd.egxChg}}</span></div>
+        <div class="stat"><span class="mute">EGX70 close</span><span class="num" style="font-size: 15px; font-weight: 800; color: #003239">{{dd.e70}}</span><span class="num" style="font-size: 12px; font-weight: 700; color: {{dd.e70Color}}">{{dd.e70Chg}}</span></div>
+        <div class="stat"><span class="mute">Breadth</span><span class="num" style="font-size: 15px; font-weight: 800; color: #003239"><span style="color: #1B6B34">{{dd.up}}</span> / <span style="color: #B42318">{{dd.down}}</span></span><span style="font-size: 12px; color: #5B7076">rose / fell</span></div>
+      </div>
+    </section>
+
+    <section aria-label="Market heatmap" class="card">
+      <h2 class="h2">Heatmap</h2>
+      <div class="seg" role="tablist" aria-label="Heatmap view">
+        <button role="tab" aria-selected="{{hm30Sel}}" class="tab {{hm30Cls}}" onClick="{{show30}}">EGX30</button>
+        <button role="tab" aria-selected="{{hm70Sel}}" class="tab {{hm70Cls}}" onClick="{{show70}}">EGX70</button>
+        <button role="tab" aria-selected="{{hmSecSel}}" class="tab {{hmSecCls}}" onClick="{{showSec}}">Sectors</button>
+      </div>
+      <div style="position: relative; width: 330px; height: 330px">
+        <sc-for list="{{tiles}}" as="t" hint-placeholder-count="17">
+          <button class="tile {{t.cls}}" aria-label="{{t.aria}}" onClick="{{t.pick}}" style="left: {{t.l}}; top: {{t.t}}; width: {{t.w}}; height: {{t.hh}}">
+            <sc-if value="{{t.showLabel}}" hint-placeholder-val="{{ true }}">
+              <span style="font-size: {{t.fs}}; font-weight: 800; line-height: 1.1; text-align: center">{{t.label}}</span>
+              <span class="num" style="font-size: 12px; font-weight: 700; text-align: center">{{t.sub}}</span>
+              <span class="num" style="font-size: 10px; font-weight: 500; text-align: center; opacity: 0.85; white-space: nowrap">{{t.sub2}}</span>
+            </sc-if>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section aria-label="Who was buying and selling" class="card">
+      <h2 class="h2">Who bought, who sold</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <div class="stat" style="background: #E6F4EA">
+          <span style="font-size: 13px; font-weight: 700; color: #0E2A30">Individuals</span>
+          <span class="num" style="font-size: 20px; font-weight: 800; color: #1B6B34">+EGP 230.1mn</span>
+          <span style="font-size: 12px; font-weight: 600; color: #1B6B34">Net buyers</span>
+        </div>
+        <div class="stat" style="background: #FDECEA">
+          <span style="font-size: 13px; font-weight: 700; color: #0E2A30">Institutions</span>
+          <span class="num" style="font-size: 20px; font-weight: 800; color: #B42318">−EGP 230.1mn</span>
+          <span style="font-size: 12px; font-weight: 600; color: #B42318">Net sellers</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <sc-for list="{{flows}}" as="f" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: 84px minmax(0, 1fr) 76px; align-items: center; column-gap: 10px">
+            <span style="font-size: 14px; font-weight: 600; color: #0E2A30">{{f.label}}</span>
+            <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); height: 8px; background: #EEF2F3; border-radius: 999px; overflow: hidden">
+              <div style="display: flex; justify-content: flex-end"><div style="width: {{f.negW}}; background: #D9483B"></div></div>
+              <div style="display: flex; justify-content: flex-start"><div style="width: {{f.posW}}; background: #2E8B57"></div></div>
+            </div>
+            <span class="num" style="font-size: 13px; font-weight: 700; color: {{f.color}}; text-align: right">{{f.value}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <span class="mute">EGP, net for the day</span>
+    </section>
+
+  </div>
+  </sc-if>
+
+  <sc-if value="{{onStock}}" hint-placeholder-val="{{ false }}">
+    <div class="scroll" style="flex: 1; overflow-y: auto; background: #003239">
+      <div style="padding: 16px 16px 0; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <button aria-label="Back to Market Activity" onClick="{{backMain}}" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+          </button>
+          <span style="display: flex; gap: 10px">
+            <button aria-label="Add to favorites" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="#FF5700" stroke="#FF5700" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></button>
+            <button aria-label="Price alert" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="#FF5700" stroke="#FF5700" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0112 0v5l2 2H4z"></path><path d="M10 20a2 2 0 004 0"></path></svg></button>
+          </span>
+        </div>
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 72px; column-gap: 12px; align-items: center">
+          <span style="display: flex; flex-direction: column; gap: 4px">
+            <span style="color: #B9CDD1; font-size: 15px; font-weight: 600">{{st.tickerTxt}}</span>
+            <span style="color: #FFFFFF; font-size: 22px; font-weight: 700; line-height: 1.25">{{st.name}}</span>
+          </span>
+          <span aria-hidden="true" style="width: 72px; height: 72px; border-radius: 50%; background: #FFFFFF; color: #003239; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800">{{st.initials}}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="display: flex; align-items: baseline; gap: 8px"><span class="num" style="color: #FFFFFF; font-size: 28px; font-weight: 500">{{st.priceTxt}}</span><span style="color: #B9CDD1; font-size: 15px">Last traded price</span></span>
+          <span style="display: flex; align-items: baseline; gap: 8px"><span class="num" style="color: {{st.chgColor}}; font-size: 15px; font-weight: 600">{{st.chgLine}}</span><span style="color: #B9CDD1; font-size: 15px">Today</span></span>
+          <span style="display: flex; align-items: center; gap: 8px; color: #B9CDD1; font-size: 15px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9CDD1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"></path></svg>Market Closed</span>
+        </div>
+      </div>
+      <svg width="390" height="190" viewBox="0 0 390 190" role="img" aria-label="Price chart placeholder" style="display: block; margin-top: 10px">
+        <defs><linearGradient id="fillg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7DF700" stop-opacity="0.28"></stop><stop offset="1" stop-color="#7DF700" stop-opacity="0"></stop></linearGradient></defs>
+        <path d="{{st.area}}" fill="url(#fillg)"></path>
+        <path d="{{st.line}}" fill="none" stroke="#7DF700" stroke-width="2"></path>
+      </svg>
+      <div style="display: flex; gap: 4px; padding: 6px 16px 18px">
+        <button class="rng on">1D</button><button class="rng">1W</button><button class="rng">1M</button><button class="rng">6M</button><button class="rng">1Y</button><button class="rng">5Y</button>
+      </div>
+      <div style="background: #F2F5F6; border-radius: 22px 22px 0 0; min-height: 600px">
+        <div style="display: flex; gap: 26px; padding: 0 16px; background: #FFFFFF; border-radius: 22px 22px 0 0; border-bottom: 1px solid #E3EAEC; overflow: hidden">
+          <button class="ptab on">Details</button><button class="ptab">My Position</button><button class="ptab">My Orders</button><button class="ptab">Related Bytes</button>
+        </div>
+        <div style="padding: 14px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+            <button style="border: 0; background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; cursor: pointer; font-family: inherit">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FF5700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><path d="M8 10h8l-2-2"></path><path d="M16 14H8l2 2"></path></svg>
+              <span style="font-size: 16px; font-weight: 600; color: #0E2A30">Price Depth</span>
+            </button>
+            <button style="border: 0; background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; cursor: pointer; font-family: inherit">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FF5700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><path d="M8 16v-4"></path><path d="M12 16V8"></path><path d="M16 16v-6"></path></svg>
+              <span style="font-size: 16px; font-weight: 600; color: #0E2A30">Trade Books</span>
+            </button>
+          </div>
+          <sc-if value="{{st.hasWhy}}" hint-placeholder-val="{{ true }}">
+            <section class="card" aria-label="Why it moved today" style="gap: 8px">
+              <span style="font-size: 12px; font-weight: 700; color: #C24100">WHY IT MOVED TODAY</span>
+              <span style="font-size: 15px; line-height: 1.5; color: #0E2A30">{{st.detail}}</span>
+            </section>
+          </sc-if>
+          <section class="card" aria-label="Company overview">
+            <h2 class="h2" style="font-size: 18px">Company Overview</h2>
+            <span style="font-size: 15px; line-height: 1.6; color: #4A6168">[Company overview: what the company does, in two or three plain sentences.]</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px">
+              <sc-for list="{{st.tags}}" as="tg" hint-placeholder-count="2">
+                <span style="background: #EEF8E0; color: #0E2A30; border-radius: 10px; padding: 6px 12px; font-size: 14px">{{tg.t}}</span>
+              </sc-for>
+            </div>
+          </section>
+          <section class="card" aria-label="Latest news">
+            <div style="display: flex; justify-content: space-between; align-items: center"><h2 class="h2" style="font-size: 18px">Latest News</h2><span style="font-size: 14px; font-weight: 600; color: #0E2A30">See More ›</span></div>
+            <span style="font-size: 15px; color: #0E2A30; line-height: 1.45">[Latest news headline for this company]</span>
+            <span style="font-size: 14px; color: #4A7A80">[Date, time]</span>
+          </section>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasSheet}}" hint-placeholder-val="{{ false }}">
+    <button aria-label="Close" onClick="{{closeSheet}}" style="position: absolute; inset: 0; border: 0; background: rgba(0,30,35,0.45); cursor: pointer"></button>
+    <section aria-label="{{sh.name}}" style="position: absolute; left: 0; right: 0; bottom: 0; max-height: 72%; background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 10px 18px 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 -8px 24px rgba(0,50,57,0.18)">
+      <span aria-hidden="true" style="align-self: center; width: 40px; height: 4px; border-radius: 999px; background: #C9D3D5"></span>
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span style="font-size: 20px; font-weight: 800; color: #003239">{{sh.name}}</span>
+        <span class="chg num {{sh.dir}}" style="font-size: 15px">{{sh.chgTxt}}</span>
+      </div>
+      <sc-if value="{{sh.showSplit}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #F5F8F8; border-radius: 12px; padding: 10px 12px">
+        <span class="mute">{{sh.metaLabel}}</span>
+        <span class="num" style="font-size: 14px; font-weight: 800; color: #003239">{{sh.meta}}</span>
+      </div>
+      </sc-if>
+      <sc-if value="{{sh.showSplit}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div aria-hidden="true" style="display: flex; height: 8px; gap: 3px">
+          <div style="flex: {{sh.up}}; background: #2E8B57; border-radius: 4px"></div>
+          <div style="flex: {{sh.down}}; background: #D9483B; border-radius: 4px"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between">
+          <span style="font-size: 13px; font-weight: 700; color: #1B6B34">{{sh.up}} up</span>
+          <span style="font-size: 13px; font-weight: 700; color: #B42318">{{sh.down}} down</span>
+        </div>
+      </div>
+      </sc-if>
+      <div style="display: grid; grid-template-columns: minmax(0,1fr) 70px 80px; column-gap: 8px; font-size: 11px; color: #5B7076"><span>Stock</span><span style="text-align: right">Price</span><span style="text-align: right">Today</span></div>
+      <div class="scroll" style="overflow-y: auto; display: flex; flex-direction: column">
+        <sc-for list="{{sh.rows}}" as="r" hint-placeholder-count="4">
+          <button class="srow" onClick="{{r.open}}" aria-label="{{r.aria}}">
+            <span style="display: flex; flex-direction: column; min-width: 0; gap: 2px">
+              <span style="font-size: 15px; font-weight: 800; color: #0E2A30">{{r.ticker}}</span>
+              <span class="mute" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.name}}</span>
+            </span>
+            <span class="num" style="font-size: 13px; color: #0E2A30; text-align: right">{{r.price}}</span>
+            <span style="text-align: right"><span class="chg num {{r.dir}}">{{r.chgTxt}}</span></span>
+          </button>
+        </sc-for>
+        <sc-if value="{{sh.empty}}" hint-placeholder-val="{{ false }}">
+          <span class="mute" style="padding: 12px 0; line-height: 1.5">{{sh.emptyTxt}}</span>
+        </sc-if>
+      </div>
+    </section>
+  </sc-if>
+</div>
+</x-dc></template>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { screen: 'main', stock: null, tab: 'up', metric: 'turn', bar: 4, shown: 0, grown: false, hm: '30', sheet: null };
+  }
+  componentDidMount() {
+    this._t = setTimeout(() => { this.setState({ grown: true }); this.animateTo(this.days()[4].turn); }, 120);
+  }
+  componentWillUnmount() { clearTimeout(this._t); cancelAnimationFrame(this._raf); }
+  days() {
+    return [
+      { day: 'Sun', date: 'Sun 8 Nov', e70: 17687, e70Chg: 0.68, turn: 10.515, vol: 2.242, trades: 249110, egx: 50812.0, egxChg: -0.67, up: 101, down: 103, foreign: -27.9 },
+      { day: 'Mon', date: 'Mon 9 Nov', e70: 17959.58, e70Chg: 1.54, turn: 10.052, vol: 2.185, trades: 290034, egx: 51414.93, egxChg: 1.19, up: 163, down: 46, foreign: -302.9 },
+      { day: 'Tue', date: 'Tue 10 Nov', e70: 18495, e70Chg: 2.99, turn: 12.929, vol: 3.0, trades: 325583, egx: 52483.46, egxChg: 2.08, up: 203, down: 26, foreign: 42.1, volApprox: true },
+      { day: 'Wed', date: 'Wed 11 Nov', e70: 18447, e70Chg: -0.26, turn: 11.785, vol: 2.7, trades: 322695, egx: 52500.47, egxChg: 0.03, up: 104, down: 132, foreign: 30.7 },
+      { day: 'Thu', date: 'Thu 12 Nov', e70: 18527.43, e70Chg: 0.43, turn: 10.295, vol: 2.1, trades: 275564, egx: 52023.37, egxChg: -0.91, up: 92, down: 127, foreign: -107.9 }
+    ];
+  }
+  fmt(m, v) {
+    if (m === 'turn') return 'EGP ' + v.toFixed(1) + 'bn';
+    if (m === 'vol') return v.toFixed(1) + 'bn shares';
+    return Math.round(v).toLocaleString('en-US');
+  }
+  animateTo(target) {
+    cancelAnimationFrame(this._raf);
+    const from = this.state.shown, t0 = performance.now();
+    const step = (t) => {
+      const p = Math.min(1, (t - t0) / 550), e = 1 - Math.pow(1 - p, 3);
+      this.setState({ shown: from + (target - from) * e });
+      if (p < 1) this._raf = requestAnimationFrame(step);
+    };
+    this._raf = requestAnimationFrame(step);
+  }
+  squarify(items, W, H) {
+    const total = items.reduce((a, b) => a + b.v, 0);
+    let rest = items.slice().sort((a, b) => b.v - a.v).map((it) => ({ ...it, area: (it.v / total) * W * H }));
+    let x = 0, y = 0, w = W, h = H;
+    const out = [];
+    const worst = (row, s) => {
+      const sum = row.reduce((a, b) => a + b.area, 0);
+      const mx = Math.max(...row.map((r) => r.area)), mn = Math.min(...row.map((r) => r.area));
+      return Math.max((s * s * mx) / (sum * sum), (sum * sum) / (s * s * mn));
+    };
+    while (rest.length) {
+      const s = Math.min(w, h);
+      const row = [rest[0]];
+      let i = 1;
+      while (i < rest.length && worst(row.concat([rest[i]]), s) <= worst(row, s)) { row.push(rest[i]); i++; }
+      const sum = row.reduce((a, b) => a + b.area, 0);
+      if (w >= h) { const cw = sum / h; let cy = y; row.forEach((r) => { const rh = r.area / cw; out.push({ ...r, x, y: cy, w: cw, h: rh }); cy += rh; }); x += cw; w -= cw; }
+      else { const ch = sum / w; let cx = x; row.forEach((r) => { const rw = r.area / ch; out.push({ ...r, x: cx, y, w: rw, h: ch }); cx += rw; }); y += ch; h -= ch; }
+      rest = rest.slice(i);
+    }
+    return out;
+  }
+  renderVals() {
+    const P = (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(2) + '%';
+    const dirOf = (v) => (v > 0 ? 'up' : v < 0 ? 'down' : 'flat');
+    const bn = (b, approx) => (approx ? '≈' : '') + 'EGP ' + (b >= 1 ? b.toFixed(b >= 100 ? 0 : 1) + 'bn' : Math.round(b * 1000) + 'mn');
+    const vol = (n) => n >= 1e6 ? (n / 1e6).toFixed(2) + 'mn' : Math.round(n / 1000) + 'k';
+    // [name, sector, price, chg, mcap bn, volume shares, rel vol, index]
+    const T = {
+      COMI: ['Commercial International Bank', 'Banks', 128.75, -1.22, 438.41, 1520000, 0.42], QNBE: ['QNB Egypt', 'Banks', 58.25, 1.34, 125.52, 435930, 0.92],
+      HDBK: ['Housing & Development Bank', 'Banks', 108.99, 5.79, 115.81, 927590, 3.78], BQDC: ['Banque du Caire', 'Banks', 5.63, -1.23, 85.86, 30210000, 0.35],
+      ADIB: ['ADIB Egypt', 'Banks', 49.4, -1.18, 74.1, 603960, 0.35], CANA: ['Suez Canal Bank', 'Banks', 34.74, 2.15, 52.11, 739020, 0.78],
+      SWDY: ['Elsewedy Electric', 'Industrial', 120.7, -0.63, 258.22, 276750, 0.54], ETEL: ['Telecom Egypt', 'Telecom & tech', 133.0, -1.49, 227.04, 4810000, 3.98],
+      EFIH: ['e-finance', 'Telecom & tech', 24.97, 0.69, 86.56, 1190000, 0.42], FWRY: ['Fawry', 'Telecom & tech', 17.87, -0.67, 60.87, 8300000, 1.13],
+      TMGH: ['Talaat Moustafa Group', 'Real estate', 83.95, -2.04, 172.99, 2030000, 0.71], EGAL: ['Egypt Aluminium', 'Basic resources', 325.0, 1.25, 134.06, 195230, 0.66],
+      MFPC: ['MOPCO', 'Basic resources', 39.26, 0.26, 112.6, 1350000, 0.5], ABUK: ['Abu Qir Fertilizers', 'Basic resources', 77.5, -0.64, 97.8, 855720, 0.39],
+      EAST: ['Eastern Company', 'Food & tobacco', 34.55, -1.29, 103.65, 10180000, 11.87], ALCN: ['Alexandria Containers', 'Shipping', 33.39, 1.74, 99.49, 385820, 1.09],
+      ORAS: ['Orascom Construction', 'Contracting', 799.9, -0.65, 95.31, 155790, 0.75],
+      HELI: ['Heliopolis Housing', 'EGX70', 7.01, -1.13, 28.08, 6660000, 0.56], FERC: ['Ferchem Misr', 'EGX70', 68.12, -0.99, 27.52, 44620, 0.25], RAYA: ['Raya Holding', 'EGX70', 6.23, -0.48, 26.67, 3910000, 0.66],
+      EXPA: ['Export Development Bank', 'EGX70', 14.63, -2.34, 26.33, 793020, 0.7], IRON: ['Egyptian Iron & Steel', 'EGX70', 26.9, 3.74, 26.28, 548230, 1.78], BTFH: ['Beltone Holding', 'EGX70', 2.44, -2.4, 26.15, 35610000, 0.61],
+      ARCC: ['Arabian Cement', 'EGX70', 69.76, -0.53, 26.15, 277460, 0.73], SCEM: ['Sinai Cement', 'EGX70', 100.04, 2.01, 26.09, 507080, 0.95], GBCO: ['GB Corp', 'EGX70', 23.21, 0.43, 25.19, 3010000, 0.53],
+      CIRA: ['CIRA Education', 'EGX70', 39.02, -0.96, 22.74, 429890, 0.94], EGCH: ['Kima', 'EGX70', 11.01, 0.46, 21.87, 2760000, 0.67], CLHO: ['Cleopatra Hospital', 'EGX70', 14.4, -1.57, 21.14, 1120000, 0.34],
+      VALU: ['valU', 'EGX70', 9.88, -0.1, 20.81, 562780, 0.35], TAQA: ['Taqa Arabia', 'EGX70', 14.6, -0.14, 19.74, 834180, 0.87], CCAP: ['Qalaa Holdings', 'EGX70', 6.11, 0.33, 19.65, 52780000, 0.87],
+      PHAR: ['EIPICO', 'EGX70', 112.21, -0.24, 18.94, 625200, 0.81], MBSC: ['Misr Beni Suef Cement', 'EGX70', 341.3, -0.35, 18.78, 84500, 0.51], POUL: ['Cairo Poultry', 'EGX70', 10.15, -0.49, 18.16, 18280000, 1.47],
+      MCQE: ['Misr Cement Qena', 'EGX70', 184.0, -1.6, 17.66, 227300, 0.87], EFIC: ['Egyptian Financial & Industrial', 'EGX70', 168.9, -0.8, 16.89, 87870, 0.39], AMOC: ['Alexandria Mineral Oils', 'EGX70', 13.04, -0.84, 16.84, 5180000, 0.38],
+      UBEE: ['United Bank', 'EGX70', 15.2, -0.72, 16.84, 10180, 0.36], NIPH: ['Nile Pharmaceuticals', 'EGX70', 335.0, 3.07, 16.75, 492960, 0.87], SAUD: ['Al Baraka Bank Egypt', 'EGX70', 22.5, 1.35, 16.36, 1820000, 2.01],
+      MTIE: ['MM Group', 'EGX70', 7.21, -1.5, 16.34, 1970000, 0.66], TALM: ['Taaleem', 'EGX70', 20.61, -0.58, 15.13, 460300, 0.43], MASR: ['Madinet Masr', 'EGX70', 6.93, -0.14, 14.8, 2530000, 0.45],
+      EGTS: ['Egyptian Resorts', 'EGX70', 13.98, -1.55, 14.68, 3810000, 2.09]
+    };
+    const X = {
+      PHDC: ['Palm Hills Developments', 12.4, 0], ARAB: ['Arab Developers Holding', 0.256, 0], ELEC: ['Electro Cable Egypt', 1.73, 0], IRAX: ['Ezz Dekheila Steel', 1250.0, 0],
+      EMFD: ['Emaar Misr', 12.69, 1.36], EFID: ['Edita Food Industries', 19.59, -1.31], ORHD: ['Orascom Development Egypt', 10.28, -1.63], HRHO: ['EFG Holding', 25.36, 0.44],
+      JUFO: ['Juhayna Food Industries', 24.13, -2.31], OCDI: ['SODIC', 26.03, -0.65], FAIT: ['Faisal Islamic Bank', 46.85, 3.65], CIEB: ['Credit Agricole Egypt', 23.15, -0.56],
+      AMES: ['Alexandria Medical', 51.9, 1.57], ATQA: ['Misr National Steel', 10.31, 3.0], BINV: ['B Investments', 54.18, -2.38], ISPH: ['Ibnsina Pharma', 10.33, -0.39],
+      RMDA: ['Rameda', 5.68, 0.89], CSAG: ['Canal Shipping Agencies', 35.38, 0.43], CICH: ['CI Capital', 10.65, -0.47], OIH: ['Orascom Investment Holding', 1.76, 0.57],
+      MIPH: ['Minapharm', 798.89, -1.37], SVCE: ['South Valley Cement', 9.26, -0.22], CPCI: ['Kahira Pharmaceuticals', 595.62, -0.45], IFAP: ['International Agricultural Products', 17.8, -0.22],
+      MOIN: ['Mohandes Insurance', 34.0, 0.92], AMIA: ['Arab Moltaqa Investments', 17.31, -1.14], MPCI: ['Memphis Pharmaceuticals', 373.0, 3.04], BONY: ['Bonyan', 4.5, -0.44],
+      OLFI: ['Obour Land', 20.71, 0.78], SUGR: ['Delta Sugar', 53.07, 4.72], MPRC: ['Media Production City', 39.56, -1.08], EGAS: ['Egypt Gas', 51.75, 0.68],
+      AXPH: ['Alexandria Pharmaceuticals', 1483.54, 1.55], ISMQ: ['Iron & Steel for Mines & Quarries', 7.57, -0.13], DOMT: ['Domty', 25.34, 0.56], ZMID: ['Zahraa Maadi', 6.98, -1.13],
+      PRDC: ['Pioneers Properties', 6.82, -0.44], GOUR: ['Gourmet Egypt', 15.92, 1.08], SUCE: ['Suez Cement', 127.83, -0.9], ENGC: ['ICON Engineering', 41.9, 4.75],
+      NBKE: ['National Bank of Kuwait Egypt', 35.8, 10.15], MHOT: ['Misr Hotels', 16.43, -3.18]
+    };
+    const S = {};
+    Object.keys(X).forEach((k) => { S[k] = { name: X[k][0], ticker: k, price: X[k][1], chg: X[k][2] }; });
+    Object.keys(T).forEach((k) => { const t = T[k]; S[k] = { name: t[0], ticker: k, sector: t[1] === 'EGX70' ? 'EGX70' : t[1], price: t[2], chg: t[3], mcap: t[4], volume: t[5], rel: t[6], index: t[1] === 'EGX70' ? 'EGX70' : 'EGX30' }; });
+    const M = {
+      INFI: { name: 'Ismailia National Food (Foodico)', ticker: 'INFI', price: 147.88, chg: 17.52, mcap: 3.18, mcapApprox: true, value: 'EGP 244.8mn', trades: '4,990', usualTxt: '13×', line: '13× its usual trading', detail: 'Rose 17.52% on trading about 13 times its usual level, with no company news behind it.', source: 'FoudaLens' },
+      ATLC: { name: 'Al Tawfeek Leasing', ticker: 'ATLC', price: 5.61, chg: 8.72, mcap: 2.2, mcapApprox: true, value: 'EGP 37.6mn', trades: '1,322', usualTxt: '4.6×', line: '4.6× its usual trading', detail: 'Rose 8.72% on trading about 4.6 times its usual level, with no company news.', source: 'FoudaLens' },
+      DTPP: { name: 'Delta Printing & Packaging', ticker: 'DTPP', price: 64.6, chg: 8.03, mcap: 1.4, mcapApprox: true, value: 'EGP 195.6mn', trades: '6,942', usualTxt: '4.3×', line: 'Was up 17% intraday', detail: 'Climbed about 17% during the session, then gave back half to close up 8.03%.', source: 'FoudaLens' },
+      ROTO: { name: 'Rowad Tourism', ticker: 'ROTO', price: 36.8, chg: 5.87, mcap: 0.63, mcapApprox: true, value: 'EGP 17.0mn', trades: '281', usualTxt: '1.8×', line: 'No company news', detail: 'Rose 5.87% with no company news, on trading about 1.8 times its usual level.', source: 'FoudaLens' },
+      PRCL: { name: 'Sheeni (Ceramic & Porcelain)', ticker: 'PRCL', price: 21.0, chg: -6.0, mcap: 1.04, mcapApprox: true, value: 'EGP 103.9mn', trades: '2,252', usualTxt: '6.3×', line: '6.3× its usual trading', detail: 'Fell 6.00% on trading about 6.3 times its usual level, with no company news.', source: 'FoudaLens' },
+      CPME: { name: 'Catalyst Partners Middle East', ticker: 'CPME', price: 36.69, chg: -5.66, mcap: 10.8, mcapApprox: true, value: 'EGP 0.6mn', trades: '11', usualTxt: '0.1×', line: 'Low trading: 11 trades', detail: 'Fell 5.66% on just 11 trades. With so little trading, a few orders can move the price a lot.', source: 'FoudaLens' },
+      CCRS: { name: 'Gulf Canadian Real Estate', ticker: 'CCRS', price: 2.08, chg: -5.02, mcap: 0.41, mcapApprox: true, value: 'EGP 41.0mn', trades: '1,355', usualTxt: '3.2×', line: '3.2× its usual trading', detail: 'Fell 5.02% on trading about 3.2 times its usual level.', source: 'FoudaLens' },
+      BIOC: { name: 'GlaxoSmithKline Egypt', ticker: 'BIOC', price: 421.01, chg: -4.32, mcap: 35.16, volume: 1060000, value: 'EGP 444.8mn', trades: '9,513', usualTxt: '2.9×', line: 'After a 14% jump on Wednesday', detail: 'Fell 4.32% a day after jumping about 14%.', source: 'Beltone Egypt In Sight' },
+      CRST: { name: 'Creast Mark for Contracting', ticker: 'CRST', price: 3.03, chg: 1.0, mcap: 3.12, mcapApprox: true, line: '#2 by value traded' },
+      KORA: { name: 'Korra for Energy', ticker: 'KORA', price: 2.12, chg: 0.95, line: '#4 by value traded' },
+      GTWL: { name: 'Golden Tex', ticker: 'GTWL', price: 150.5, chg: 1.52, mcap: 2.18, mcapApprox: true, line: '#5 by value traded' }
+    };
+    Object.assign(S, M);
+    const extra = {
+      HDBK: { line: 'Joining MSCI Egypt Small Cap', value: 'EGP 101.1mn', trades: '3,294', usualTxt: '4.4×', detail: 'Rose 5.79% after MSCI said it will add it to its Egypt Small Cap index from 30 November.', source: 'Beltone Egypt In Sight' },
+      ETEL: { line: 'EGP 648mn traded', value: 'EGP 648mn', detail: 'The most traded stock, on volume about 4 times its usual level, after MSCI said it will move it up to its Egypt standard index from 30 November.', source: 'Beltone Egypt In Sight; TradingView' },
+      COMI: { detail: 'Fell 1.22%, one of the blue chips that pulled EGX30 lower.', source: 'Beltone Egypt In Sight' },
+      EAST: { detail: 'Fell 1.29% on volume about 12 times its usual level, after MSCI said it will move it down to its Egypt Small Cap index.', source: 'TradingView; FoudaLens' },
+      CANA: { detail: 'New shares from its bonus issue traded from today; it rose 2.15% on the adjusted price.', source: 'Beltone Egypt In Sight' }
+    };
+    Object.keys(extra).forEach((k) => Object.assign(S[k], extra[k]));
+    const openStock = (k) => () => this.setState({ screen: 'stock', stock: k, sheet: null });
+
+    const lists = { up: ['INFI', 'ATLC', 'DTPP', 'ROTO', 'HDBK'], down: ['PRCL', 'CPME', 'CCRS', 'BIOC'], traded: ['ETEL', 'CRST', 'BIOC', 'KORA', 'GTWL'] };
+    const tab = this.state.tab;
+    const items = lists[tab].map((k) => {
+      const s = S[k];
+      const initials = s.name.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+      return { initials, name: s.name, line: s.line || s.ticker, priceTxt: 'EGP ' + s.price.toFixed(2), chgTxt: P(s.chg), dir: dirOf(s.chg), aria: s.name + ', ' + P(s.chg), open: openStock(k) };
+    });
+    const go = (k) => () => this.setState({ tab: k });
+
+    const m = this.state.metric;
+    const D = this.days();
+    const vals = D.map((d) => d[m]);
+    const mx = Math.max(...vals);
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const grown = this.state.grown;
+    const plotH = 140 - 24;
+    const bars = D.map((d, i) => {
+      const sel = i === this.state.bar, v = d[m];
+      const short = m === 'turn' ? v.toFixed(1) : m === 'vol' ? (d.volApprox ? '≈' : '') + v.toFixed(1) : Math.round(v / 1000) + 'k';
+      return {
+        day: d.day, valTxt: short, h: grown ? Math.round((v / mx) * plotH) + 'px' : '0px',
+        color: sel ? '#FF5700' : '#B9CDD1', txtColor: sel ? '#C24100' : '#5B7076',
+        dayColor: sel ? '#003239' : '#5B7076', dayWeight: sel ? '800' : '500',
+        aria: d.date + ': ' + this.fmt(m, v),
+        pick: () => { if (this.state.bar !== i) { this.setState({ bar: i }); this.animateTo(v); } }
+      };
+    });
+    const sd = D[this.state.bar];
+    const vs = (sd[m] / avg - 1) * 100;
+    const dd = {
+      egx: Math.round(sd.egx).toLocaleString('en-US'), egxChg: P(sd.egxChg), egxColor: sd.egxChg >= 0 ? '#1B6B34' : '#B42318',
+      e70: Math.round(sd.e70).toLocaleString('en-US'), e70Chg: P(sd.e70Chg), e70Color: sd.e70Chg >= 0 ? '#1B6B34' : '#B42318', up: sd.up, down: sd.down
+    };
+    const pickMetric = (k) => () => { if (k === m) return; this.setState({ metric: k, shown: 0 }); const v = this.days()[this.state.bar][k]; setTimeout(() => this.animateTo(v), 0); };
+
+    const secDefs = [
+      ['Industry & materials', 18.4, 1898.49, ['SWDY', 'EGAL', 'ORAS', 'IRON', 'ARCC', 'SCEM', 'MBSC', 'MCQE']],
+      ['Food & beverages', 14.83, 1529.62, ['EAST', 'POUL']],
+      ['Healthcare', 13.32, 1374.32, ['PHAR', 'NIPH', 'CLHO']],
+      ['Financial services', 13.02, 1343.25, ['EFIH', 'FWRY', 'BTFH', 'CCAP', 'VALU']],
+      ['Real estate & hotels', 10.73, 1106.56, ['TMGH', 'HELI', 'MASR', 'EGTS']],
+      ['Telecom & media', 6.67, 687.87, ['ETEL', 'RAYA']],
+      ['Banks', 6.15, 634.63, ['COMI', 'QNBE', 'HDBK', 'BQDC', 'ADIB', 'CANA', 'EXPA', 'UBEE', 'SAUD']],
+      ['Consumer goods', 4.59, 473.36, ['GBCO', 'MTIE']],
+      ['Chemicals', 2.65, 272.95, ['MFPC', 'ABUK', 'FERC', 'EGCH', 'EFIC']],
+      ['Energy', 0.91, 93.6, ['TAQA', 'AMOC']],
+      ['Education', 0.79, 81.05, ['CIRA', 'TALM']],
+      ['Transport', 0.62, 63.84, ['ALCN']]
+    ];
+    const sec = {};
+    secDefs.forEach(([n, share, value, mem]) => {
+      const cap = mem.reduce((a, k) => a + S[k].mcap, 0);
+      const wchg = mem.reduce((a, k) => a + S[k].mcap * S[k].chg, 0) / cap;
+      sec[n] = { mem, share, value, chg: n === 'Banks' ? 1.21 : wchg };
+    });
+    const secNames = secDefs.map((d) => d[0]);
+    const hm = this.state.hm;
+    let src = [];
+    if (hm === '30') src = Object.keys(T).filter((k) => T[k][1] !== 'EGX70').map((k) => ({ key: k, label: k, v: S[k].mcap, chg: S[k].chg, sub: P(S[k].chg), name: S[k].name, pick: openStock(k) }));
+    if (hm === '70') src = Object.keys(T).filter((k) => T[k][1] === 'EGX70').map((k) => ({ key: k, label: k, v: S[k].mcap, chg: S[k].chg, sub: P(S[k].chg), name: S[k].name, pick: openStock(k) }));
+    if (hm === 'sec') src = secNames.map((n) => ({ key: n, label: n, v: sec[n].share, chg: sec[n].chg, sub: P(sec[n].chg), sub2: sec[n].share.toFixed(1) + '% of trading', name: n, pick: () => this.setState({ sheet: n }) }));
+    const band = (v) => v >= 2 ? 't-u3' : v >= 0.75 ? 't-u2' : v > 0.05 ? 't-u1' : v <= -2 ? 't-d3' : v <= -0.75 ? 't-d2' : v < -0.05 ? 't-d1' : 't-n';
+    const W = 330, H = 330, gap = 3;
+    const tiles = this.squarify(src, W, H).map((r) => {
+      const big = r.w > 110 && r.h > 90;
+      return {
+        cls: band(r.chg), l: (r.x + gap / 2).toFixed(1) + 'px', t: (r.y + gap / 2).toFixed(1) + 'px',
+        w: Math.max(0, r.w - gap).toFixed(1) + 'px', hh: Math.max(0, r.h - gap).toFixed(1) + 'px',
+        showLabel: r.w > 46 && r.h > 38, label: r.label, sub: r.sub, sub2: r.sub2 && r.w > 78 && r.h > 66 ? r.sub2 : '', fs: big ? '18px' : (r.label.length > 8 ? '11px' : '13px'),
+        aria: r.name + ', ' + r.sub, pick: r.pick
+      };
+    });
+    const hmGo = (k) => () => this.setState({ hm: k });
+
+    let sh = { name: '', chgTxt: '', dir: 'flat', up: 0, down: 0, metaLabel: '', meta: '', rows: [], showSplit: false, empty: false, emptyTxt: '' };
+    const row = (k) => ({ ticker: k, name: S[k].name, price: S[k].price < 1 ? S[k].price.toFixed(3) : S[k].price.toFixed(2), chgTxt: P(S[k].chg), dir: dirOf(S[k].chg), aria: S[k].name + ', ' + P(S[k].chg), open: openStock(k) });
+    const sheet = this.state.sheet;
+    if (sheet && sheet.indexOf('list:') === 0) {
+      const kind = sheet.slice(5);
+      const all = Object.keys(S).filter((k) => (kind === 'up' ? S[k].chg > 0 : kind === 'down' ? S[k].chg < 0 : S[k].chg === 0));
+      all.sort((a, b) => (kind === 'down' ? S[a].chg - S[b].chg : S[b].chg - S[a].chg));
+      const total = kind === 'up' ? 92 : kind === 'down' ? 127 : 16;
+      sh = {
+        name: kind === 'up' ? 'Stocks that rose' : kind === 'down' ? 'Stocks that fell' : 'Unchanged stocks',
+        chgTxt: String(total), dir: kind === 'up' ? 'up' : kind === 'down' ? 'down' : 'flat',
+        metaLabel: kind === 'down' ? 'Biggest fall first' : kind === 'up' ? 'Biggest rise first' : 'Closed where they opened',
+        meta: all.length + ' of ' + total + ' shown', up: 0, down: 0, showSplit: false,
+        rows: all.map(row), empty: all.length === 0, emptyTxt: ''
+      };
+    } else if (sheet) {
+      const x = sec[sheet];
+      sh = {
+        name: sheet, chgTxt: P(x.chg), dir: dirOf(x.chg), metaLabel: "Share of today's trading", meta: x.share.toFixed(2) + '% · EGP ' + Math.round(x.value).toLocaleString('en-US') + 'mn',
+        up: x.mem.filter((k) => S[k].chg > 0).length, down: x.mem.filter((k) => S[k].chg < 0).length, showSplit: true,
+        rows: x.mem.slice().sort((a, b) => S[b].chg - S[a].chg).map(row), empty: false, emptyTxt: ''
+      };
+    }
+
+    let st = { name: '', tickerTxt: '', initials: '', priceTxt: '', chgLine: '', chgColor: '#7DF700', hasWhy: false, detail: '', stats: [], tags: [], line: '', area: '' };
+    if (this.state.stock) {
+      const k = this.state.stock, s = S[k];
+      const prev = s.price / (1 + s.chg / 100), diff = s.price - prev;
+      const stats = [
+        { k: 'Open', v: '[OPEN]' }, { k: 'Prev. close', v: prev.toFixed(2) },
+        { k: 'High', v: '[HIGH]' }, { k: 'VWAP', v: '[VWAP]' },
+        { k: 'Low', v: '[LOW]' }, { k: '52W high', v: '[52W H]' },
+        { k: 'Volume', v: s.volume ? vol(s.volume) : '[VOL]' }, { k: 'Value', v: s.value ? s.value.replace('EGP ', '') : (s.volume ? ((s.volume * s.price) / 1e6).toFixed(1) + 'mn' : '[VALUE]') }
+      ];
+      let seed = 0; for (let c = 0; c < k.length; c++) seed = (seed * 31 + k.charCodeAt(c)) % 9973;
+      const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+      const n = 48, pts = [];
+      let y = 0;
+      for (let p = 0; p < n; p++) { y += (rnd() - 0.5) * 1.2 + (s.chg >= 0 ? 0.06 : -0.06); pts.push(y); }
+      const mn = Math.min(...pts), mxp = Math.max(...pts);
+      const xy = pts.map((v, p) => [(p / (n - 1)) * 390, 170 - ((v - mn) / (mxp - mn || 1)) * 140]);
+      const line = 'M ' + xy.map((q) => q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(' L ');
+      const words = s.name.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean);
+      st = {
+        name: s.name, tickerTxt: s.ticker, initials: words.slice(0, 2).map((w) => w[0]).join('').toUpperCase(),
+        priceTxt: 'EGP ' + s.price.toFixed(2), chgLine: (diff >= 0 ? '+' : '−') + Math.abs(diff).toFixed(2) + ' (' + Math.abs(s.chg).toFixed(2) + '%)', chgColor: s.chg >= 0 ? '#7DF700' : '#FF8A80',
+        hasWhy: !!s.detail, detail: s.detail || '', stats,
+        tags: (s.index === 'EGX30' ? ['EGX30', 'EGX100 EWI'] : s.index === 'EGX70' ? ['EGX70 EWI', 'EGX100 EWI'] : ['[INDEX]']).map((t) => ({ t })),
+        line, area: line + ' L 390 190 L 0 190 Z'
+      };
+    }
+
+    const fl = [['Egyptians', 171.16], ['Arabs', -63.27], ['Foreigners', -107.89]];
+    const flows = fl.map(([label, v]) => ({ label, value: (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + 'mn', color: v >= 0 ? '#1B6B34' : '#B42318', posW: v > 0 ? Math.round((v / 180) * 100) + '%' : '0%', negW: v < 0 ? Math.round((-v / 180) * 100) + '%' : '0%' }));
+
+    return {
+      onMain: this.state.screen === 'main', onStock: this.state.screen === 'stock', backMain: () => this.setState({ screen: 'main' }),
+      items, upCls: tab === 'up' ? 'on' : '', downCls: tab === 'down' ? 'on' : '', tradedCls: tab === 'traded' ? 'on' : '',
+      upSel: tab === 'up' ? 'true' : 'false', downSel: tab === 'down' ? 'true' : 'false', tradedSel: tab === 'traded' ? 'true' : 'false',
+      showUp: go('up'), showDown: go('down'), showTraded: go('traded'),
+      openUp: () => this.setState({ sheet: 'list:up' }), openDown: () => this.setState({ sheet: 'list:down' }), openFlat: () => this.setState({ sheet: 'list:flat' }),
+      bars, dd, dayLabel: sd.date + (m === 'vol' && sd.volApprox ? ' · approx.' : ''), shownTxt: this.fmt(m, this.state.shown),
+      vsTxt: (vs >= 0 ? '+' : '−') + Math.abs(vs).toFixed(0) + '% vs avg', vsDir: vs >= 0 ? 'up' : 'down',
+      avgBottom: (grown ? Math.round((avg / mx) * plotH) : 0) + 'px', avgTxt: this.fmt(m, avg),
+      mTurnCls: m === 'turn' ? 'on' : '', mVolCls: m === 'vol' ? 'on' : '', mTradesCls: m === 'trades' ? 'on' : '',
+      mTurnSel: m === 'turn' ? 'true' : 'false', mVolSel: m === 'vol' ? 'true' : 'false', mTradesSel: m === 'trades' ? 'true' : 'false',
+      showTurn: pickMetric('turn'), showVol: pickMetric('vol'), showTrades: pickMetric('trades'),
+      resetBar: () => { const last = D.length - 1; if (this.state.bar !== last) { this.setState({ bar: last }); this.animateTo(D[last][m]); } },
+      tiles, hm30Cls: hm === '30' ? 'on' : '', hm70Cls: hm === '70' ? 'on' : '', hmSecCls: hm === 'sec' ? 'on' : '',
+      hm30Sel: hm === '30' ? 'true' : 'false', hm70Sel: hm === '70' ? 'true' : 'false', hmSecSel: hm === 'sec' ? 'true' : 'false',
+      show30: hmGo('30'), show70: hmGo('70'), showSec: hmGo('sec'),
+      hasSheet: !!this.state.sheet, sh, closeSheet: () => this.setState({ sheet: null }),
+      st, flows
+    };
+  }
+}
+</script>
+</body>
+</html>
